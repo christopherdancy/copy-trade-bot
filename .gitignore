@@ -1,0 +1,17 @@
+/.env
+/venv/
+/venv/lib/
+
+/backtest_data/
+
+# Python cache files
+src/__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Add these new entries
+/data/
+venv
+*.dylib
+*.so

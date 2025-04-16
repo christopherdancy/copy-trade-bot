@@ -1,0 +1,49 @@
+2025-04-16 01:06:21,241 - trading_system - INFO - Starting trading system...
+2025-04-16 01:06:21,259 - trading_system - INFO - Trading System Initializing: Mode=Live, Dry Run=False, Initial Capital=0.7015
+2025-04-16 01:06:21,260 - trading_system - INFO - Strategy Parameters: {'tracked_wallets': ['gzvseaajexljevachhqcujbw7njq98gwueztood9lm9b', 'ekey4tnuhqr2wwkhj1wfebgozvkntcau3enhyqo5udxz'], 'min_trade_amount': 0.1, 'max_time_in_trade': 30, 'take_profit_pct': 0.07}
+2025-04-16 01:06:21,260 - trading_system - INFO - Risk Parameters: {'max_position_size': 0.02, 'stop_loss_pct': 0.02, 'max_positions': 5, 'max_hold_time_minutes': 5, 'max_daily_loss_pct': 0.5}
+2025-04-16 01:06:21,260 - trading_system - INFO - Backtest Mode: False Dry Run: False
+2025-04-16 01:06:21,260 - trading_system - CRITICAL - Trading System Starting
+2025-04-16 01:06:21,260 - trading_system - INFO - Attempting to connect to WebSocket at wss://mainnet.helius-rpc.com/?api-key=cd782283-4629-4f2e-9966-12e10b7134b9
+2025-04-16 01:06:21,561 - trading_system - INFO - Subscription message sent successfully
+2025-04-16 01:06:22,439 - trading_system - INFO - Checking entry conditions for gzvseaajexljevachhqcujbw7njq98gwueztood9lm9b: Mint=C2MWmhLkGKQmKvvwh6ozSggY2QRn4FumvVaGBq8vpump, price=2.982292637465095728501583822E-8, signature=2rnv9m2zaW89A4QJZsXnnNcoe3jt8idRmPhPKRKS4urLHMJZ3bNMi48hmVdeYVeopEd9TrkQGRuT4bMzN1x4J7VT, sol_amount=2, token_amount=67062499.999999
+2025-04-16 01:06:22,439 - trading_system - INFO - Building buy transaction
+2025-04-16 01:06:22,441 - trading_system - INFO - Sending transaction
+2025-04-16 01:06:22,826 - trading_system - INFO - Transaction sent successfully: 2AcjmjEgUBuNa8XWwUoZB83KRvdwdsEyQEoBF8tQ4deJ89jCaZ6kpUdearAjfAscH439uthpWDqPqWdYDwMAPzv1
+2025-04-16 01:06:22,827 - trading_system - INFO - Waiting for transaction to be processed
+2025-04-16 01:06:23,506 - trading_system - INFO - Transaction confirmed successfully
+2025-04-16 01:06:23,645 - trading_system - INFO - Successfully retrieved transaction details
+2025-04-16 01:06:23,645 - trading_system - INFO - Entry Successful: Mint=C2MWmhLkGKQmKvvwh6ozSggY2QRn4FumvVaGBq8vpump, Details={'tx_type': 'buy', 'execution_price': 3.342290269179702e-08, 'sol_trade_amount': 0.019052099, 'token_trade_amount': 570031.249999, 'total_sol_change': 0.0213394, 'pump_fee': 0.000190521, 'network_fee': 5.75e-05, 'token_account_fee': 0.00203928, 'token_account_refund': 0.0, 'total_fees': 0.0022873010000000003, 'tx_sig': '2AcjmjEgUBuNa8XWwUoZB83KRvdwdsEyQEoBF8tQ4deJ89jCaZ6kpUdearAjfAscH439uthpWDqPqWdYDwMAPzv1', 'blocktime': 1744779982}
+2025-04-16 01:06:23,645 - trading_system - INFO - Added position: C2MWmhLkGKQmKvvwh6ozSggY2QRn4FumvVaGBq8vpump, Position Size: 0.019052099, Token Amount: 570031.249999, Tx Fees: 0.0022873010000000003, current capital: 0.6801606
+2025-04-16 01:06:23,646 - trading_system - INFO - Checking exit conditions for C2MWmhLkGKQmKvvwh6ozSggY2QRn4FumvVaGBq8vpump: price=3.190059024542452291970603002E-8,signature=2CiYByPLaah9GNtDi8B3npGo5rqKkUmvUjhTgUi81ozeC182SLLjRqBRGPMpNhe21nwNtF2Z1nFC1TWqxgX2gwnR, sol_amount=0.09, token_amount=2821264.412589, blocktime=1744779981
+2025-04-16 01:06:23,646 - trading_system - INFO - Skipping exit check for C2MWmhLkGKQmKvvwh6ozSggY2QRn4FumvVaGBq8vpump because it's before or at the entry blocktime
+2025-04-16 01:06:23,647 - trading_system - INFO - Checking exit conditions for C2MWmhLkGKQmKvvwh6ozSggY2QRn4FumvVaGBq8vpump: price=3.224094340652405360023923824E-8,signature=PR2pL1q7ASYWKp9Y4z5HHRq6F19FiLdTqCdFz6EUyUf7xVJi4GTgpqFcdtUwuhwasQ8ug7G39dGWz6xGHeWXSnp, sol_amount=0.251413752, token_amount=7797965.116279, blocktime=1744779981
+2025-04-16 01:06:23,647 - trading_system - INFO - Skipping exit check for C2MWmhLkGKQmKvvwh6ozSggY2QRn4FumvVaGBq8vpump because it's before or at the entry blocktime
+2025-04-16 01:06:23,647 - trading_system - INFO - Checking exit conditions for C2MWmhLkGKQmKvvwh6ozSggY2QRn4FumvVaGBq8vpump: price=3.260228619622431229621151080E-8,signature=73v1is6BvRskJX6yMfA6GJBPbSRtcgTKnikWmmDR4UeWXVoRG1Mws8CSaqLFnTViLjfVaw2DGgdcwTxwLhkcS3o, sol_amount=0.108237145, token_amount=3319925, blocktime=1744779981
+2025-04-16 01:06:23,647 - trading_system - INFO - Skipping exit check for C2MWmhLkGKQmKvvwh6ozSggY2QRn4FumvVaGBq8vpump because it's before or at the entry blocktime
+2025-04-16 01:06:23,648 - trading_system - INFO - Checking exit conditions for C2MWmhLkGKQmKvvwh6ozSggY2QRn4FumvVaGBq8vpump: price=3.287952267016551423382941989E-8,signature=62eFCpnFsmwkQ4dhCvAEWSVqD2tbEqpmpRQM4tkq8vfLbpr3X91UkgiHL6AhTBxZbEyPu4QvmN4REFiZz84KPoJA, sol_amount=0.166781029, token_amount=5072489.36285, blocktime=1744779981
+2025-04-16 01:06:23,648 - trading_system - INFO - Skipping exit check for C2MWmhLkGKQmKvvwh6ozSggY2QRn4FumvVaGBq8vpump because it's before or at the entry blocktime
+2025-04-16 01:06:23,648 - trading_system - INFO - Checking exit conditions for C2MWmhLkGKQmKvvwh6ozSggY2QRn4FumvVaGBq8vpump: price=3.322552940740203807296943081E-8,signature=5fqtGETLhbXLNRnEhckJXHU5mqnGbD9mSrzHu6x3ucciQFj34S1PdwtPgU3n8ZJZPT8shusQ1oXfhfnjaPN3iiac, sol_amount=0.174702101, token_amount=5258068.241979, blocktime=1744779981
+2025-04-16 01:06:23,648 - trading_system - INFO - Skipping exit check for C2MWmhLkGKQmKvvwh6ozSggY2QRn4FumvVaGBq8vpump because it's before or at the entry blocktime
+2025-04-16 01:06:23,651 - trading_system - INFO - Skipping our own transaction: 2AcjmjEgUBuNa8XWwUoZB83KRvdwdsEyQEoBF8tQ4deJ89jCaZ6kpUdearAjfAscH439uthpWDqPqWdYDwMAPzv1
+2025-04-16 01:06:27,906 - trading_system - INFO - Checking exit conditions for C2MWmhLkGKQmKvvwh6ozSggY2QRn4FumvVaGBq8vpump: price=3.349227516261767390434765824E-8,signature=53VXVsC1Xf9wryS6kqN2GEBNeYCafPE6ato4zaVdr3dDrfv1aU3WL6EPWmSYVmUUaCJUe4vRGBns36i2SU7xHszc, sol_amount=0.0490099, token_amount=1463319.519562, blocktime=1744779986
+2025-04-16 01:06:28,648 - trading_system - INFO - Checking exit conditions for C2MWmhLkGKQmKvvwh6ozSggY2QRn4FumvVaGBq8vpump: price=3.405264735778973269201511141E-8,signature=2YiHexMwXSWHftqvdKqXjEtJrqywqNrK6aiGMuh6AungjgYJddSjo5wgVv5rwpLHxRngBWE49CjXL1ramcqeDR8h, sol_amount=0.49995, token_amount=14681677.895614, blocktime=1744779987
+2025-04-16 01:06:28,648 - trading_system - INFO - Checking exit conditions for C2MWmhLkGKQmKvvwh6ozSggY2QRn4FumvVaGBq8vpump: price=3.660235356416893408697284971E-8,signature=2EAwX2SaLUeU2Xti8viXx7NojthR31vxmKU9MatwbkLh5ht4yk1Dyq2vTg94WyzgdhBs5wtnjXXcDm64iDhA2E5T, sol_amount=1.960396039, token_amount=53559289.17421, blocktime=1744779987
+2025-04-16 01:06:28,649 - trading_system - INFO - Building sell transaction with account closure
+2025-04-16 01:06:28,649 - trading_system - INFO - Sending transaction
+2025-04-16 01:06:28,970 - trading_system - INFO - Transaction sent successfully: PPhELvUmTbtn9Zw2ymkazQMJ2fSUgERmJpGLmB8RZe8hj2rBUYBhmzZB88e1PVwQaM6xdAKyNX6BEuvrecvqTgW
+2025-04-16 01:06:28,970 - trading_system - INFO - Waiting for transaction to be processed
+2025-04-16 01:06:30,293 - trading_system - INFO - Transaction confirmed successfully
+2025-04-16 01:06:30,392 - trading_system - INFO - Successfully retrieved transaction details
+2025-04-16 01:06:30,402 - trading_system - INFO - Exited position: C2MWmhLkGKQmKvvwh6ozSggY2QRn4FumvVaGBq8vpump, PnL: 0.004337415000000001, Current Capital: 0.705297998
+2025-04-16 01:06:30,403 - trading_system - INFO - Exit Successful: Mint=C2MWmhLkGKQmKvvwh6ozSggY2QRn4FumvVaGBq8vpump, PnL=0.004337415000000001, exit reason=Strategy Exit tx_details={'tx_type': 'sell', 'execution_price': 4.103198552718124e-08, 'sol_trade_amount': 0.023389514, 'token_trade_amount': 570031.249999, 'total_sol_change': 0.025137398, 'pump_fee': 0.000233896, 'network_fee': 5.75e-05, 'token_account_fee': 0.0, 'token_account_refund': 0.00203928, 'total_fees': 0.000291396, 'tx_sig': 'PPhELvUmTbtn9Zw2ymkazQMJ2fSUgERmJpGLmB8RZe8hj2rBUYBhmzZB88e1PVwQaM6xdAKyNX6BEuvrecvqTgW', 'blocktime': 1744779989}
+2025-04-16 01:06:30,410 - trading_system - INFO - Skipping our own transaction: PPhELvUmTbtn9Zw2ymkazQMJ2fSUgERmJpGLmB8RZe8hj2rBUYBhmzZB88e1PVwQaM6xdAKyNX6BEuvrecvqTgW
+2025-04-16 01:06:58,125 - trading_system - INFO - Received signal 2. Starting graceful shutdown...
+2025-04-16 01:06:58,284 - trading_system - INFO - Graceful shutdown initiated
+2025-04-16 01:06:58,284 - trading_system - INFO - Shutting down trading system...
+2025-04-16 01:06:58,284 - trading_system - CRITICAL - Initiating trading system shutdown
+2025-04-16 01:06:58,285 - trading_system - INFO - No open positions remaining - proceeding with full shutdown
+2025-04-16 01:06:58,285 - trading_system - INFO - Shutting down services...
+2025-04-16 01:06:58,343 - trading_system - INFO - Trading system stopped successfully
+2025-04-16 01:06:58,343 - trading_system - INFO - Trading system stopped successfully
+2025-04-16 01:06:58,343 - trading_system - INFO - Trading system shutdown complete

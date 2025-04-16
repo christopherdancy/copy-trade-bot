@@ -1,0 +1,105 @@
+2025-04-16 00:01:23,756 - trading_system - INFO - Starting trading system...
+2025-04-16 00:01:23,930 - trading_system - INFO - Trading System Initializing: Mode=Live, Dry Run=False, Initial Capital=0.7015
+2025-04-16 00:01:23,930 - trading_system - INFO - Strategy Parameters: {'tracked_wallets': ['gzvseaajexljevachhqcujbw7njq98gwueztood9lm9b', 'ekey4tnuhqr2wwkhj1wfebgozvkntcau3enhyqo5udxz'], 'min_trade_amount': 0.1, 'max_time_in_trade': 30, 'take_profit_pct': 0.07}
+2025-04-16 00:01:23,930 - trading_system - INFO - Risk Parameters: {'max_position_size': 0.02, 'stop_loss_pct': 0.02, 'max_positions': 5, 'max_hold_time_minutes': 5, 'max_daily_loss_pct': 0.5}
+2025-04-16 00:01:23,930 - trading_system - INFO - Backtest Mode: False Dry Run: False
+2025-04-16 00:01:23,930 - trading_system - CRITICAL - Trading System Starting
+2025-04-16 00:01:23,930 - trading_system - INFO - Attempting to connect to WebSocket at wss://mainnet.helius-rpc.com/?api-key=cd782283-4629-4f2e-9966-12e10b7134b9
+2025-04-16 00:01:24,283 - trading_system - INFO - Subscription message sent successfully
+2025-04-16 00:29:51,266 - trading_system - INFO - Checking entry conditions for ekey4tnuhqr2wwkhj1wfebgozvkntcau3enhyqo5udxz: Mint=5qu9AP5GHZdg3yUBSm5trEhbN6x4JvKqLWNUe5bXpump, price=3.522708082106263873484149709E-8, signature=41mf9onQMiX7BiCe7h5YqAi8ph4By2w6ssE1KCN54JNqK5DQ7jUcs6hbuTF3iX2LTrHxiXJGXkoE6RRUuaJX7925, sol_amount=3.436241611, token_amount=97545454.545454
+2025-04-16 00:29:51,270 - trading_system - INFO - Building buy transaction
+2025-04-16 00:29:51,273 - trading_system - INFO - Sending transaction
+2025-04-16 00:29:51,675 - trading_system - INFO - Transaction sent successfully: MX6MXBEqHiN9dwgprq81QEJrtAcTJ3ou8ts2q4by311oDPuZhzhJE5vn1LMyDDspGFRJBA6NL3RWhegytrbdCdn
+2025-04-16 00:29:51,675 - trading_system - INFO - Waiting for transaction to be processed
+2025-04-16 00:29:52,406 - trading_system - INFO - Transaction confirmed successfully
+2025-04-16 00:29:52,609 - trading_system - WARNING - Timed out waiting for transaction details
+2025-04-16 00:29:52,609 - trading_system - ERROR - Transaction failed
+2025-04-16 00:29:52,623 - trading_system - INFO - Skipping our own transaction: MX6MXBEqHiN9dwgprq81QEJrtAcTJ3ou8ts2q4by311oDPuZhzhJE5vn1LMyDDspGFRJBA6NL3RWhegytrbdCdn
+2025-04-16 00:31:59,592 - trading_system - INFO - Checking entry conditions for ekey4tnuhqr2wwkhj1wfebgozvkntcau3enhyqo5udxz: Mint=3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump, price=3.522708082106263873484149709E-8, signature=2covYSdjKWKP8hoHMRzgprJ5aGptGPCVk4RYdrVCQsR9XJZ2hktAigwJgnR5jyGPRH9ByPtk5tURAhhEx3yUAjG, sol_amount=3.436241611, token_amount=97545454.545454
+2025-04-16 00:31:59,592 - trading_system - INFO - Building buy transaction
+2025-04-16 00:31:59,593 - trading_system - INFO - Sending transaction
+2025-04-16 00:31:59,913 - trading_system - INFO - Transaction sent successfully: 3t9NLJP78vgH6TqRhBjJ1yVdrtZ1hPm1sXYP1W8gjMB9qZywjYo55BWTwswYoFbJ3FbocU8aFTZxdUXUEGXYYhMN
+2025-04-16 00:31:59,913 - trading_system - INFO - Waiting for transaction to be processed
+2025-04-16 00:32:01,214 - trading_system - INFO - Transaction confirmed successfully
+2025-04-16 00:32:01,369 - trading_system - INFO - Successfully retrieved transaction details
+2025-04-16 00:32:01,369 - trading_system - INFO - Entry Successful: Mint=3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump, Details={'tx_type': 'buy', 'execution_price': 3.917510202744975e-08, 'sol_trade_amount': 0.018905249, 'token_trade_amount': 482583.27411, 'total_sol_change': 0.021191082, 'pump_fee': 0.000189053, 'network_fee': 5.75e-05, 'token_account_fee': 0.00203928, 'token_account_refund': 0.0, 'total_fees': 0.002285833, 'tx_sig': '3t9NLJP78vgH6TqRhBjJ1yVdrtZ1hPm1sXYP1W8gjMB9qZywjYo55BWTwswYoFbJ3FbocU8aFTZxdUXUEGXYYhMN', 'blocktime': 1744777919}
+2025-04-16 00:32:01,369 - trading_system - INFO - Added position: 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump, Position Size: 0.018905249, Token Amount: 482583.27411, Tx Fees: 0.002285833, current capital: 0.680308918
+2025-04-16 00:32:01,371 - trading_system - INFO - Checking exit conditions for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump: price=3.908198623134724513617748702E-8,signature=jWn7JTfZy8AizDtzthDgPFYqeG4XcDQprJQiKMjPTuKHUwig7P5rBmjyQy6B18dnP8Vr9HgrC2fKw3NCpQHzRzs, sol_amount=0.065523373, token_amount=1676562, blocktime=1744777919
+2025-04-16 00:32:01,371 - trading_system - INFO - Skipping exit check for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump because it's before or at the entry blocktime
+2025-04-16 00:32:01,374 - trading_system - INFO - Skipping our own transaction: 3t9NLJP78vgH6TqRhBjJ1yVdrtZ1hPm1sXYP1W8gjMB9qZywjYo55BWTwswYoFbJ3FbocU8aFTZxdUXUEGXYYhMN
+2025-04-16 00:32:01,376 - trading_system - INFO - Checking exit conditions for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump: price=3.933239882871462404825110424E-8,signature=5kRCHz2aLF8J8vfDzDq8NKhRwrvgqgCUNGZJ7rQbnjVe43F4nN49QVfLbbTpw4Q4wsihTtWF9hGiXG42WxZV6ukm, sol_amount=0.123643559, token_amount=3143555, blocktime=1744777919
+2025-04-16 00:32:01,376 - trading_system - INFO - Skipping exit check for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump because it's before or at the entry blocktime
+2025-04-16 00:32:01,376 - trading_system - INFO - Checking exit conditions for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump: price=3.949680854955615537186402019E-8,signature=5fFq2a53iRMpQHvwsMsaLpR9z4zRfXEh2EMzWrB9U4tsBV4xauLwyP3BqHV55KhAzjGukkCN34mdZ3uQDacNmfFp, sol_amount=0.024832078, token_amount=628711, blocktime=1744777919
+2025-04-16 00:32:01,376 - trading_system - INFO - Skipping exit check for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump because it's before or at the entry blocktime
+2025-04-16 00:32:02,088 - trading_system - INFO - Checking exit conditions for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump: price=3.952674391271760699760690222E-8,signature=5DQ9wgDLZdvSCSgrCAyGwTB7Nb3Km6kvgLxx2dqczNXUzQL5FpkdJ1F7v3w2JwkebUUgNUwuWoeA1mCjx8Hdibs1, sol_amount=0.002182916, token_amount=55226.304621, blocktime=1744777920
+2025-04-16 00:32:02,932 - trading_system - INFO - Checking exit conditions for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump: price=3.952672580540431014257125375E-8,signature=2gz4kd8wV1fKWSbfEqfFprdCguZyuQMj4iGrppeYAstKZzhU1Ra8VmN6rGdEJWD96D5YPCM1qPPYX9r8JPtYRMCb, sol_amount=0.002182915, token_amount=55226.304621, blocktime=1744777921
+2025-04-16 00:32:04,283 - trading_system - INFO - Checking exit conditions for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump: price=3.945103193320616833734750042E-8,signature=2n7yBWDTtkcHfS1X9r8AJgbpp5RByKfNfReX2psZTbpYNxZj6Do9qVRyyEzLaBP4arzUYYcdKxMCDMe68MTDyARD, sol_amount=0.066142101, token_amount=1676562, blocktime=1744777923
+2025-04-16 00:32:06,690 - trading_system - INFO - Checking exit conditions for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump: price=3.970841036865709102019354956E-8,signature=5KoxoqWjHhfEYVntAX6TtWyW2c93hz2y9TU2URax78fN7jdXG8YedxLnbwUpLPpor9hxRUkGtAaVvJ3nRKjYKEat, sol_amount=0.298847044, token_amount=7526038.973242, blocktime=1744777925
+2025-04-16 00:32:12,840 - trading_system - INFO - Checking exit conditions for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump: price=3.970841023578507114952990993E-8,signature=XPjJCmqQrenRfBKx6vYo9yynS4kz49h9s3Kt3DdnzVEtqeMp2rREPMFauGDFnKVwSxwAtfi8G8cwZuDTGga4hD2, sol_amount=0.298847043, token_amount=7526038.973242, blocktime=1744777931
+2025-04-16 00:32:16,662 - trading_system - INFO - Checking exit conditions for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump: price=3.924144066192574966876673066E-8,signature=2jfvpwGbKbXq6kmRQS1VEfQhvKhtNiQseTXojkyNhqXGs4N27ivRGka4skhKmzbtvfRUWYfpf7aw8MYj5jAGB7RX, sol_amount=0.123357627, token_amount=3143555, blocktime=1744777935
+2025-04-16 00:32:16,668 - trading_system - INFO - Checking exit conditions for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump: price=3.910764068962540803700367462E-8,signature=QcMhMgKBTSeZMURmvXqoh86mQSQfncMg5XwpHoB768vmsfus3riXVSqETkU7fL3ooeAfLQpPoDbv9kZzbnxeDcB, sol_amount=0.001953236, token_amount=49945.124931, blocktime=1744777935
+2025-04-16 00:32:16,674 - trading_system - INFO - Checking exit conditions for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump: price=3.915343167683074945222064640E-8,signature=453SReKWjFuPHzZGfi8ZQcERHzq8M9Q79vQMYycB9dKmHbpnUV2GZVdtzQGsvbdLHydjeoj3HXNDJ6MpFjXhtB9U, sol_amount=0.0396, token_amount=1011405.59854, blocktime=1744777935
+2025-04-16 00:32:16,677 - trading_system - INFO - Checking exit conditions for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump: price=3.916995408065072823602577337E-8,signature=3hmDRYaaTJv1RpHMWV6YE8ZGxgiH9teirJRuZ8e7Zfcjp29QPv5vUvoRSotvMzDA8c92fvYsLKcEJb61fB6Cgovj, sol_amount=0.024626581, token_amount=628711, blocktime=1744777935
+2025-04-16 00:32:26,456 - trading_system - INFO - Checking exit conditions for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump: price=3.534129846505145577613307578E-8,signature=NJs31xK8NxKbg2wmYbJDAPnwQ5ru11riXEeKo54PW5wTgZXvbXY8542KEyc5cBTs16Qt6HQLYVwgFJysGGSaQTA, sol_amount=3.447383023, token_amount=97545454.545454, blocktime=1744777945
+2025-04-16 00:32:26,456 - trading_system - INFO - Building sell transaction with account closure
+2025-04-16 00:32:26,456 - trading_system - ERROR - Error in sell_token: close_account() got an unexpected keyword argument 'account'
+2025-04-16 00:32:26,456 - trading_system - ERROR - Error executing sell transaction for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump: close_account() got an unexpected keyword argument 'account'
+2025-04-16 00:32:26,456 - trading_system - INFO - Checking exit conditions for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump: price=2.991180953588115432334815853E-8,signature=NJs31xK8NxKbg2wmYbJDAPnwQ5ru11riXEeKo54PW5wTgZXvbXY8542KEyc5cBTs16Qt6HQLYVwgFJysGGSaQTA, sol_amount=2.005960727, token_amount=67062499.999999, blocktime=1744777945
+2025-04-16 00:32:26,456 - trading_system - INFO - Building sell transaction with account closure
+2025-04-16 00:32:26,456 - trading_system - ERROR - Error in sell_token: close_account() got an unexpected keyword argument 'account'
+2025-04-16 00:32:26,456 - trading_system - ERROR - Error executing sell transaction for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump: close_account() got an unexpected keyword argument 'account'
+2025-04-16 00:32:28,106 - trading_system - INFO - Checking exit conditions for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump: price=2.895445557907804225250728374E-8,signature=51jmJR2GdPkEsjXrBiFf8CcLtqYsRJstGd69uJAruxAP5U2Dkew5bbVtn4fnZTELSkRjwvU7PdXJKwW716fjPh2T, sol_amount=0.980198019, token_amount=33853097.887576, blocktime=1744777947
+2025-04-16 00:32:28,106 - trading_system - INFO - Building sell transaction with account closure
+2025-04-16 00:32:28,107 - trading_system - ERROR - Error in sell_token: close_account() got an unexpected keyword argument 'account'
+2025-04-16 00:32:28,107 - trading_system - ERROR - Error executing sell transaction for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump: close_account() got an unexpected keyword argument 'account'
+2025-04-16 00:32:31,752 - trading_system - INFO - Checking exit conditions for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump: price=2.895445554953864815271361516E-8,signature=4zjnwcm1AhynZwe1RSCtamFb3rUcCpurCrF33omBNGAxH1QzspPe2MkufqW8aRgTNp8Mu8VrxfYvhmLvRHu9CoHx, sol_amount=0.980198018, token_amount=33853097.887576, blocktime=1744777950
+2025-04-16 00:32:31,752 - trading_system - INFO - Building sell transaction with account closure
+2025-04-16 00:32:31,752 - trading_system - ERROR - Error in sell_token: close_account() got an unexpected keyword argument 'account'
+2025-04-16 00:32:31,752 - trading_system - ERROR - Error executing sell transaction for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump: close_account() got an unexpected keyword argument 'account'
+2025-04-16 00:32:34,365 - trading_system - INFO - Checking exit conditions for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump: price=2.801318387094084554364108177E-8,signature=2Jo4hmZuXr7kfHYnLcYMvum4nbPn2DDz3afGmDVVvVXe6EVVdmVbNadhdF15wmg4YU4PRkRpX1Smm8F7YkfDzmrQ, sol_amount=0.028332691, token_amount=1011405.59854, blocktime=1744777953
+2025-04-16 00:32:34,366 - trading_system - INFO - Building sell transaction with account closure
+2025-04-16 00:32:34,366 - trading_system - ERROR - Error in sell_token: close_account() got an unexpected keyword argument 'account'
+2025-04-16 00:32:34,366 - trading_system - ERROR - Error executing sell transaction for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump: close_account() got an unexpected keyword argument 'account'
+2025-04-16 00:33:03,408 - trading_system - INFO - Checking exit conditions for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump: price=2.798545407446665377528235459E-8,signature=3r1oHDv3PioGqEx3KMcWkcDqUtBie4yFQg46FspY77yoVX5idHScCQqHzGeDsG3NEvs29K67NGiuz7W6QqhthM6c, sol_amount=0.001397737, token_amount=49945.124931, blocktime=1744777982
+2025-04-16 00:33:03,408 - trading_system - INFO - Building sell transaction with account closure
+2025-04-16 00:33:03,408 - trading_system - ERROR - Error in sell_token: close_account() got an unexpected keyword argument 'account'
+2025-04-16 00:33:03,408 - trading_system - ERROR - Error executing sell transaction for 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump: close_account() got an unexpected keyword argument 'account'
+2025-04-16 00:33:07,330 - trading_system - INFO - Checking entry conditions for ekey4tnuhqr2wwkhj1wfebgozvkntcau3enhyqo5udxz: Mint=aLKfsb3n3iwdJNPd2FqQrwVrveTyY2fj22boHizpump, price=3.522708082106263873484149709E-8, signature=5TzUDw3VwHmSmGAAnFoQD7YqWKFj3kjy2pcAbhJaaqpqfJXsFCBhFGDBhsCQmtkkxWiNxdEP3Lj9RPntk4t1Tu3D, sol_amount=3.436241611, token_amount=97545454.545454
+2025-04-16 00:33:07,331 - trading_system - INFO - Building buy transaction
+2025-04-16 00:33:07,331 - trading_system - INFO - Sending transaction
+2025-04-16 00:33:07,629 - trading_system - INFO - Transaction sent successfully: 4r9NAcWzU9a88qM8KKUax2znCuGH4cgDUGZtoPKrvL8RqRZn4mYLpw4yAzoqRhccvikaMVXg8TjPAcg7BtVLuWnt
+2025-04-16 00:33:07,629 - trading_system - INFO - Waiting for transaction to be processed
+2025-04-16 00:33:08,466 - trading_system - INFO - Transaction confirmed successfully
+2025-04-16 00:33:08,606 - trading_system - INFO - Successfully retrieved transaction details
+2025-04-16 00:33:08,606 - trading_system - INFO - Entry Successful: Mint=aLKfsb3n3iwdJNPd2FqQrwVrveTyY2fj22boHizpump, Details={'tx_type': 'buy', 'execution_price': 3.9361679152747045e-08, 'sol_trade_amount': 0.018995288, 'token_trade_amount': 482583.27411, 'total_sol_change': 0.021282021, 'pump_fee': 0.000189953, 'network_fee': 5.75e-05, 'token_account_fee': 0.00203928, 'token_account_refund': 0.0, 'total_fees': 0.002286733, 'tx_sig': '4r9NAcWzU9a88qM8KKUax2znCuGH4cgDUGZtoPKrvL8RqRZn4mYLpw4yAzoqRhccvikaMVXg8TjPAcg7BtVLuWnt', 'blocktime': 1744777987}
+2025-04-16 00:33:08,606 - trading_system - INFO - Added position: aLKfsb3n3iwdJNPd2FqQrwVrveTyY2fj22boHizpump, Position Size: 0.018995288, Token Amount: 482583.27411, Tx Fees: 0.002286733, current capital: 0.6590268970000001
+2025-04-16 00:33:08,612 - trading_system - INFO - Checking exit conditions for aLKfsb3n3iwdJNPd2FqQrwVrveTyY2fj22boHizpump: price=3.901224271270076801469138805E-8,signature=2VVnWkE5o48Dz3SSmxcV8rULhPuepjGaeXw4YEd7bDLYeKdrbohrNDBYLPFdGXEvSUEn5Z5Es82dba4thPeGeVk7, sol_amount=0.002154502, token_amount=55226.304621, blocktime=1744777987
+2025-04-16 00:33:08,612 - trading_system - INFO - Skipping exit check for aLKfsb3n3iwdJNPd2FqQrwVrveTyY2fj22boHizpump because it's before or at the entry blocktime
+2025-04-16 00:33:08,612 - trading_system - INFO - Checking exit conditions for aLKfsb3n3iwdJNPd2FqQrwVrveTyY2fj22boHizpump: price=3.904162166718889919215665067E-8,signature=2CyoLqTGzmZWhBmASM6k2jHHfjnGwCd1vZHU4syfsknbpY3wF724TmGUABT9U6ZoqtRrH2aABsFcr3vsQnkcHVpT, sol_amount=0.024545897, token_amount=628711, blocktime=1744777987
+2025-04-16 00:33:08,612 - trading_system - INFO - Skipping exit check for aLKfsb3n3iwdJNPd2FqQrwVrveTyY2fj22boHizpump because it's before or at the entry blocktime
+2025-04-16 00:33:08,613 - trading_system - INFO - Checking exit conditions for aLKfsb3n3iwdJNPd2FqQrwVrveTyY2fj22boHizpump: price=3.920443478800275484284512280E-8,signature=3LWwLv5KhNrhC5jMoUQeFSfTAwgNyGgVuzvkd9CxDNdqKtmvMawL4q12kKeawhiBrXL84bYntPSkna8dsTcru6Hk, sol_amount=0.123241297, token_amount=3143555, blocktime=1744777987
+2025-04-16 00:33:08,613 - trading_system - INFO - Skipping exit check for aLKfsb3n3iwdJNPd2FqQrwVrveTyY2fj22boHizpump because it's before or at the entry blocktime
+2025-04-16 00:33:08,614 - trading_system - INFO - Skipping our own transaction: 4r9NAcWzU9a88qM8KKUax2znCuGH4cgDUGZtoPKrvL8RqRZn4mYLpw4yAzoqRhccvikaMVXg8TjPAcg7BtVLuWnt
+2025-04-16 00:33:13,861 - trading_system - INFO - Checking exit conditions for aLKfsb3n3iwdJNPd2FqQrwVrveTyY2fj22boHizpump: price=3.938027385545934661424646039E-8,signature=3mWqBtCwingo6aFVgDsUhjH2sKGFYfVDrE9PjFkFtq37WYL7Lp9pg7p9FNKtzcRKBDef8Eb2nopxEjuEaaNrHr8R, sol_amount=0.002174827, token_amount=55226.304621, blocktime=1744777992
+2025-04-16 00:33:24,151 - trading_system - INFO - Checking exit conditions for aLKfsb3n3iwdJNPd2FqQrwVrveTyY2fj22boHizpump: price=3.935051398814399620811469817E-8,signature=4WNS9j9nw5WtGqCU9ngShJjJ7C9zuLTzeKNxv3jpK77rZTPLv3RDpYszWTwcnA6DDuPcyj9yPKUZEANp8fPpSa4P, sol_amount=0.024740101, token_amount=628711, blocktime=1744778003
+2025-04-16 00:33:24,155 - trading_system - INFO - Checking exit conditions for aLKfsb3n3iwdJNPd2FqQrwVrveTyY2fj22boHizpump: price=3.918701692828660545147134375E-8,signature=3S4i227cAjLQb2xqMXiFAosJ5wQvJjx5qra1oQrRxzoNHQY2L59LiHQv9NRo2zK1DRkXpcX3wsmn5VWf1gkL8VPt, sol_amount=0.123186543, token_amount=3143555, blocktime=1744778003
+2025-04-16 00:33:41,408 - trading_system - INFO - Checking exit conditions for aLKfsb3n3iwdJNPd2FqQrwVrveTyY2fj22boHizpump: price=3.526272190773551871046733123E-8,signature=4gpMDqpNiDZSEhm6994Kpnn5M3FXmW1LBwMDKay8PsH5TbZUAphQPcwP4wdVgb7Sk5iEbH3Ca9uoatjE7ZPHeQUa, sol_amount=3.439718237, token_amount=97545454.545454, blocktime=1744778020
+2025-04-16 00:33:41,408 - trading_system - INFO - Building sell transaction with account closure
+2025-04-16 00:33:41,408 - trading_system - ERROR - Error in sell_token: close_account() got an unexpected keyword argument 'account'
+2025-04-16 00:33:41,408 - trading_system - ERROR - Error executing sell transaction for aLKfsb3n3iwdJNPd2FqQrwVrveTyY2fj22boHizpump: close_account() got an unexpected keyword argument 'account'
+2025-04-16 00:33:41,408 - trading_system - INFO - Checking exit conditions for aLKfsb3n3iwdJNPd2FqQrwVrveTyY2fj22boHizpump: price=2.985066570736298006584465779E-8,signature=4gpMDqpNiDZSEhm6994Kpnn5M3FXmW1LBwMDKay8PsH5TbZUAphQPcwP4wdVgb7Sk5iEbH3Ca9uoatjE7ZPHeQUa, sol_amount=2.001860269, token_amount=67062499.999999, blocktime=1744778020
+2025-04-16 00:33:41,408 - trading_system - INFO - Building sell transaction with account closure
+2025-04-16 00:33:41,408 - trading_system - ERROR - Error in sell_token: close_account() got an unexpected keyword argument 'account'
+2025-04-16 00:33:41,408 - trading_system - ERROR - Error executing sell transaction for aLKfsb3n3iwdJNPd2FqQrwVrveTyY2fj22boHizpump: close_account() got an unexpected keyword argument 'account'
+2025-04-16 00:34:13,367 - trading_system - INFO - Received signal 2. Starting graceful shutdown...
+2025-04-16 00:34:13,637 - trading_system - INFO - Graceful shutdown initiated
+2025-04-16 00:34:13,637 - trading_system - INFO - Shutting down trading system...
+2025-04-16 00:34:13,637 - trading_system - CRITICAL - Initiating trading system shutdown
+2025-04-16 00:34:13,637 - trading_system - WARNING - Waiting for 2 positions to close naturally
+2025-04-16 00:34:13,637 - trading_system - INFO - Still waiting on 2 positions to close...
+2025-04-16 00:34:13,637 - trading_system - INFO - Open position: 3NsqFS7MWi1XS2qCzVw7GWgArAn1eAvgfU3sa3nYpump, Entry time: 1744777919
+2025-04-16 00:34:13,637 - trading_system - INFO - Open position: aLKfsb3n3iwdJNPd2FqQrwVrveTyY2fj22boHizpump, Entry time: 1744777987
+2025-04-16 00:34:14,092 - trading_system - INFO - Checking entry conditions for ekey4tnuhqr2wwkhj1wfebgozvkntcau3enhyqo5udxz: Mint=FjoQuwfiBpxhUZV5JpcQJLythuoyPQxvWrcxaSjDpump, price=3.522708082106263873484149709E-8, signature=4SJu3gMNUipcBLNLsRMCaoPHPBRCF1FKWq8cZ3aQcs191EWpMUsstKgiydMgFvp9Qe71nGqWDAQJY7BSFt2Ur1L9, sol_amount=3.436241611, token_amount=97545454.545454
+2025-04-16 00:34:14,092 - trading_system - INFO - System is in shutdown mode - no new positions allowed
+2025-04-16 00:34:16,638 - trading_system - ERROR - Shutdown timed out after 3 seconds
+2025-04-16 00:34:16,639 - trading_system - INFO - Trading system shutdown complete

@@ -1,0 +1,2 @@
+config_name,timestamp,total_signals,entry_signals,exit_signals,signals_to_entries_ratio,total_entries,completed_trades,open_positions,strategy_exits,stop_loss_exits,total_pnl,win_rate,avg_win,avg_loss,avg_trade_pnl,avg_hold_time,min_volume_threshold,max_position_size,stop_loss_pct
+baseline_confirmation_move_5_max_time_in_trade,2025-02-10T18:58:23.511220+00:00,330,232,98,0.703030303030303,232,232,0,98,134,442.14963265349880997364,0.41379310344827586,4.621734931484032453358333333,-0.01130088800711989374088235294,1.90581738212715,1.5386494252873564,35,0.1,0.02

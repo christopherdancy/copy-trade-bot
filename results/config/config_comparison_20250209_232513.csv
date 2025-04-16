@@ -1,0 +1,2 @@
+config_name,timestamp,total_signals,entry_signals,exit_signals,signals_to_entries_ratio,total_entries,completed_trades,open_positions,strategy_exits,stop_loss_exits,total_pnl,win_rate,avg_win,avg_loss,avg_trade_pnl,avg_hold_time,min_volume_threshold,max_position_size,stop_loss_pct
+take_profit_20pct_stop_loss_2pct,2025-02-10T04:25:06.287193+00:00,1879,1386,493,0.7376263970196913,1386,1383,3,493,890,2092.8103561391717445914,0.35647143890093996,4.277847053090267936626774848,-0.01816656295992173951191011236,1.5132395922915196,7.440696553386358,35,0.1,0.02
