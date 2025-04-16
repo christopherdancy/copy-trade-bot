@@ -12,6 +12,7 @@ src/__pycache__/
 
 # Add these new entries
 /data/
+/logs/
 venv
 *.dylib
 *.so
