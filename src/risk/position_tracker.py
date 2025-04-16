@@ -98,7 +98,7 @@ class PositionTracker:
             
             
             net_entry_cost = (trade.entry_sol_amount + trade.entry_network_fee + trade.entry_pump_fee + trade.entry_token_account_fee)
-            net_exit_value = (tx_result['sol_trade_amount'] - tx_result['network_fee'] - tx_result['pump_fee'] - tx_result['token_account_refund'])
+            net_exit_value = (tx_result['sol_trade_amount'] - tx_result['network_fee'] - tx_result['pump_fee'] + tx_result['token_account_refund'])
             net_pnl = net_exit_value - net_entry_cost
             # Calculate ROI
             net_roi = (net_pnl / net_entry_cost) * 100 if net_entry_cost != 0 else 0
@@ -438,7 +438,7 @@ class PositionTracker:
                                             current_trade['entry_token_account_fee'])
                             net_exit_value = (current_trade['exit_sol_amount'] - 
                                             current_trade['exit_network_fee'] - 
-                                            current_trade['exit_pump_fee'] -
+                                            current_trade['exit_pump_fee'] +
                                             current_trade['exit_token_account_refund'])
                             net_pnl = net_exit_value - net_entry_cost
                             current_trade['net_pnl'] = net_pnl
