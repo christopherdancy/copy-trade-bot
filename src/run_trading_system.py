@@ -148,23 +148,23 @@ async def main():
     logger = TradingLogger("trading_system", console_output=False)
 
     baseline_risk_params = {
-        'max_position_size': 0.02,
+        'max_position_size': 0.05,
         'max_positions': 5,
         'max_hold_time_minutes': 5,
         'max_daily_loss_pct': 0.5,
-        'stop_loss_pct': 0.02
+        'stop_loss_pct': 0.05
     }
 
     # Copy trading strategy parameters
     baseline_strategy_params = {
         'min_trade_amount': 0.1,
         'max_time_in_trade': 30,
-        'take_profit_pct': 0.07,
+        'take_profit_pct': 0.09,
     }
     
     config = Config(
         name=f"live_trading_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-        initial_capital=.7015,
+        initial_capital=.50139,
         strategy_params=baseline_strategy_params,
         risk_params=baseline_risk_params,
         timeframe_seconds=60

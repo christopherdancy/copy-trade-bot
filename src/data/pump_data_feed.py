@@ -88,7 +88,7 @@ class PumpDataFeed:
                     "method": "logsSubscribe",
                     "params": [
                         {"mentions": [self.program_id]},
-                        {"commitment": "confirmed"}
+                        {"commitment": "processed"}
                     ]
                 }
                 
@@ -133,13 +133,12 @@ class PumpDataFeed:
 
     async def process_message(self, msg: str):
         try:
+            # Add timestamp for message receipt
+            receipt_time = datetime.now()
+            
             data = json.loads(msg)
             if "params" not in data:
                 return
-
-            # Debug print
-            # if self.debug:
-            #     print(f"Received message: {msg}")
 
             result = data["params"].get("result", {}).get("value", {})
             if not result or "logs" not in result:
@@ -211,13 +210,17 @@ class PumpDataFeed:
                             
                         price = sol_decimal / token_decimal
 
+                        # Calculate network latency between the transaction timestamp and our receipt time
+                        tx_timestamp = datetime.fromtimestamp(timestamp)
+                        network_latency_ms = (receipt_time - tx_timestamp).total_seconds() * 1000
+
                         trade_event = TradeEvent(
                             mint=mint,
                             sol_amount=sol_decimal,
                             token_amount=token_decimal,
                             is_buy=is_buy,
                             user=user,
-                            timestamp=datetime.fromtimestamp(timestamp),
+                            timestamp=tx_timestamp,
                             virtual_sol_reserves=Decimal(v_sol) / Decimal(1_000_000_000),
                             virtual_token_reserves=Decimal(v_token) / Decimal(1_000_000),
                             real_sol_reserves=Decimal(r_sol) / Decimal(1_000_000_000),
@@ -226,11 +229,23 @@ class PumpDataFeed:
                             blocktime=timestamp  # Add blocktime to the trade event
                         )
                         
+                        # Calculate processing time before callbacks
+                        parsing_time = datetime.now()
+                        parsing_latency_ms = (parsing_time - receipt_time).total_seconds() * 1000
+                        
                         # Call callbacks only if we successfully parsed everything
                         for callback in self.callbacks:
                             # if self.debug:
                                 # print(f"Calling callback with trade event: {trade_event.mint}")
                             await callback(trade_event)
+                            
+                        # Calculate total time including callbacks
+                        total_time = datetime.now()
+                        total_latency_ms = (total_time - receipt_time).total_seconds() * 1000
+                        
+                        # Create more comprehensive timing log
+                        timing_info = f"Latency metrics - Parsing: {parsing_latency_ms:.2f}ms, Total: {total_latency_ms:.2f}ms, Network: {network_latency_ms:.2f}ms, Signature: {signature}..."
+                        self.logger.info(timing_info)
                             
                     except Exception as e:
                         # self._debug(f"Error processing Trade in pump data feed: {str(e)}")

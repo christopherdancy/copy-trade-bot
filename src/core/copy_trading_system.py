@@ -1,7 +1,7 @@
 from decimal import Decimal
 from datetime import datetime, timezone
 from typing import Dict, List
-from data.pump_data_feed import PumpDataFeed
+from data.pump_data_feed_enhanced import PumpDataFeed
 from strategies.copy_trading_strategy import CopyTradingStrategy, Signal
 from risk.risk_manager import RiskManager
 from utils.logger import TradingLogger
@@ -182,6 +182,9 @@ class TradingSystem:
             return
 
         try:
+            # Add timestamp for start of processing
+            process_start_time = datetime.now(timezone.utc)
+            
             wallet_address = trade.user.lower()
             our_wallet_address = None if self.dry_run else str(self.wallet.pubkey()).lower()
 
@@ -193,6 +196,10 @@ class TradingSystem:
                 if not self.dry_run and wallet_address == our_wallet_address:
                     self.logger.info(f"Skipping our own transaction: {trade.signature}")
                     return
+                
+                # Track processing time before decision logic
+                pre_decision_time = datetime.now(timezone.utc)
+                pre_decision_ms = (pre_decision_time - process_start_time).total_seconds() * 1000
                 
                 # Exit Logic - check for exit conditions if we have a position in this token
                 # This applies to both buys and sells from other wallets, as price changes can trigger stop loss/take profit
@@ -211,6 +218,11 @@ class TradingSystem:
                             f"sol_amount={trade.sol_amount}, "
                             f"token_amount={trade.token_amount}")
                     await self._handle_exit_checks(trade)
+                    
+                    # Record exit handling time
+                    # exit_handling_time = datetime.now(timezone.utc)
+                    # exit_handling_ms = (exit_handling_time - pre_decision_time).total_seconds() * 1000
+                    # self.logger.info(f"Performance - Exit check processing: {exit_handling_ms:.2f}ms, Total: {(exit_handling_time - process_start_time).total_seconds() * 1000:.2f}ms")
                     return
                 
                 # Entry logic - only check for entries on buy transactions from tracked wallets
@@ -222,7 +234,17 @@ class TradingSystem:
                         f"sol_amount={trade.sol_amount}, "
                         f"token_amount={trade.token_amount}")
                     await self._handle_entry_checks(trade)
+                    
+                    # Record entry handling time
+                    # entry_handling_time = datetime.now(timezone.utc)
+                    # entry_handling_ms = (entry_handling_time - pre_decision_time).total_seconds() * 1000
+                    # self.logger.info(f"Performance - Entry check processing: {entry_handling_ms:.2f}ms, Total: {(entry_handling_time - process_start_time).total_seconds() * 1000:.2f}ms")
                     return
+
+                # Record time for trades with no action
+                end_time = datetime.now(timezone.utc)
+                total_ms = (end_time - process_start_time).total_seconds() * 1000
+                # self.logger.info(f"Performance - No action taken: {total_ms:.2f}ms")
 
         except Exception as e:
             self.logger.error(f"Error processing trade in trading system: {str(e)}")
@@ -340,6 +362,10 @@ class TradingSystem:
         """
         trade_type = "buy" if is_buy else "sell"
         try:
+            # Start execution timing
+            exec_start_time = datetime.now(timezone.utc)
+            self.logger.info(f"Starting {trade_type} execution for {mint}")
+            
             tx_details = None
             if self.dry_run:
                 # Simulate trade execution in dry run mode
@@ -368,18 +394,28 @@ class TradingSystem:
                         token_amount=amount,
                     )
                 )
+            
+            # Record execution time
+            exec_end_time = datetime.now(timezone.utc)
+            exec_time_ms = (exec_end_time - exec_start_time).total_seconds() * 1000
                 
             if tx_details:
                 if not is_buy:
                     self.position_tracker.record_exit(mint, tx_details, timestamp)
                 else:
                     self.position_tracker.record_entry(mint, tx_details, timestamp, signal)
+                    
+                self.logger.info(f"Performance - {trade_type.capitalize()} transaction execution time: {exec_time_ms:.2f}ms")
                 return True, tx_details
             else:
-                self.logger.error("Transaction failed")
+                self.logger.error(f"Transaction failed after {exec_time_ms:.2f}ms")
                 return False, {}
                     
         except Exception as e:
-            self.logger.error(f"Error executing {trade_type} transaction for {mint}: {str(e)}")
+            # Record execution time even on error
+            exec_end_time = datetime.now(timezone.utc)
+            exec_time_ms = (exec_end_time - exec_start_time).total_seconds() * 1000
+            
+            self.logger.error(f"Error executing {trade_type} transaction for {mint}: {str(e)} (took {exec_time_ms:.2f}ms)")
             return False, {}
                 

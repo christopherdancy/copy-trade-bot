@@ -49,7 +49,7 @@ class LiveRunExecutor:
         mint: Pubkey, 
         amount_sol: float,
         price: float,
-        slippage_percent: float = 15.0
+        slippage_percent: float = 10.0
     ):
         """Execute a buy transaction with derived accounts"""
         try:
@@ -228,7 +228,7 @@ class LiveRunExecutor:
                 self.logger.info(f"Waiting for transaction to be processed")
                 await asyncio.wait_for(
                     self.client.confirm_transaction(tx.value, commitment=Processed),
-                    timeout=2  # 500ms max wait - slightly generous timeout
+                    timeout=3  # 500ms max wait - slightly generous timeout
                 )
                 self.logger.info(f"Transaction confirmed successfully")
                 
@@ -236,7 +236,7 @@ class LiveRunExecutor:
                 try:
                     tx_details = await asyncio.wait_for(
                         self.get_transaction_details(tx.value),
-                        timeout=0.2  # 500ms max wait for details
+                        timeout=0.5  # 500ms max wait for details
                     )
                     
                     # Verify transaction succeeded
