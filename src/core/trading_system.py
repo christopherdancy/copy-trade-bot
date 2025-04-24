@@ -16,10 +16,9 @@ from pathlib import Path
 from execution.dry_run_executor import DryRunExecutor
 from solders.pubkey import Pubkey
 from data.backtest_data_feed import BacktestDataFeed
-from risk.position import Position
 from asyncio import Lock
 from risk.monitoring import HeartbeatMonitor
-from core.position_tracker import PositionTracker
+from core.position_tracker import PositionTracker, Position
 from db.service import DatabaseService
 from dotenv import load_dotenv
 import json
@@ -30,6 +29,7 @@ load_dotenv()
 
 # TODO: Deal with system running issues
 # TODO: log system progress for most important metrics
+# TODO: Test actual live and determine if we can batch by block, then we to track latency metrics
 
 class TradingSystem:
     def __init__(self, 
@@ -192,7 +192,6 @@ class TradingSystem:
             wallet_address = trade.user.lower()
             our_wallet_address = self.wallet.lower() if self.dry_run else str(self.wallet.pubkey()).lower()
             
-
             # Ensure we have a lock for this token
             if trade.mint not in self.position_locks:
                 self.position_locks[trade.mint] = Lock()

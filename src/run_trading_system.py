@@ -3,7 +3,7 @@ import signal
 from datetime import datetime, timezone, timedelta
 from typing import Dict, List
 from dataclasses import dataclass
-from core.copy_trading_system import TradingSystem
+from core.trading_system import TradingSystem
 from utils.config import RiskParameters
 import pandas as pd
 from pathlib import Path
