@@ -51,7 +51,7 @@ class LiveRunExecutor:
         price: float,
         slippage_percent: float = 10.0
     ):
-        """Execute a buy transaction with derived accounts"""
+        """Execute a buy transaction with derived accounts - pure fire and forget approach"""
         try:
             self.logger.info(f"Building buy transaction")
             
@@ -64,9 +64,6 @@ class LiveRunExecutor:
             # Create transaction and set fee payer
             transaction = Transaction()
             transaction.fee_payer = self.wallet.pubkey()
-
-            # Add priority fee based on network conditions
-            # priority_fee = await self.get_recent_priority_fee()
             
             # Create compute budget instructions manually
             transaction.add(self.compute_limit_ix)
@@ -78,7 +75,6 @@ class LiveRunExecutor:
                 transaction.add(user_ata_ix)
             
             # Calculate token amount directly from the observed price
-            # Make sure to enter the trade
             amount_sol_lamports = int(amount_sol * 1_000_000_000)
             
             if price <= 0:
@@ -100,25 +96,30 @@ class LiveRunExecutor:
                 max_sol_amount=amount_sol_lamports
             )
             transaction.add(buy_ix)
+
+            # Submit transaction in background task - don't even wait for signature
+            asyncio.create_task(self._submit_transaction(transaction, mint, "buy"))
             
-            # Send and confirm transaction
-            return await self.send_and_confirm_transaction(transaction, True, False)
+            # Return immediately - we'll get all updates through WebSocket
+            return True
             
         except ValueError as ve:
-            raise
+            self.logger.error(f"Error building buy transaction: {str(ve)}")
+            return False
         except Exception as e:
-            raise  # Re-raise the exception after logging
-
+            self.logger.error(f"Error in buy transaction creation: {str(e)}")
+            return False
+            
     async def sell_token(
         self,
         mint: Pubkey,
         token_amount: float,
         slippage_percent: float = 100,
-        close_account: bool = True  # New parameter to optionally close the account
+        close_account: bool = True
     ):
-        """Execute a sell transaction with derived accounts and optionally close the token account"""
+        """Execute a sell transaction - pure fire and forget approach"""
         try:
-            self.logger.info(f"Building sell transaction" + (" with account closure" if close_account else ""))
+            self.logger.info(f"Building sell transaction")
             
             # Get PDAs and associated accounts
             bonding_curve_pda = self.bonding_curve_executor.get_bonding_curve_pda(mint, PUMP_PROGRAM)
@@ -155,11 +156,32 @@ class LiveRunExecutor:
             if close_account:
                 transaction.add(close_ix)
             
-            return await self.send_and_confirm_transaction(transaction, False, False)
+            # Submit transaction in background task - don't even wait for signature
+            asyncio.create_task(self._submit_transaction(transaction, mint, "sell"))
+            
+            # Return immediately - we'll get all updates through WebSocket
+            return True
             
         except Exception as e:
             self.logger.error(f"Error in sell_token: {str(e)}")
-            raise  # Re-raise the exception after logging
+            return False
+
+    async def _submit_transaction(self, transaction, mint, tx_type):
+        """Background task for transaction submission"""
+        try:
+            self.logger.info(f"Submitting {tx_type} transaction for {mint}")
+            tx = await self.client.send_transaction(
+                transaction,
+                self.wallet,
+                opts=TxOpts(
+                    skip_preflight=True,
+                    preflight_commitment=Processed,
+                    max_retries=0
+                )
+            )
+            self.logger.info(f"{tx_type.capitalize()} transaction for {mint} sent: {tx.value}")
+        except Exception as e:
+            self.logger.error(f"Error submitting {tx_type} transaction for {mint}: {str(e)}")
 
     # TODO: Scalping Strategy Optimization Path
     # 

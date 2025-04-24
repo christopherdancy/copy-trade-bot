@@ -3,7 +3,7 @@ from datetime import datetime
 import os
 
 class TradingLogger:
-    def __init__(self, name: str = "trading_bot", log_dir: str = "logs", console_output: bool = False):
+    def __init__(self, name: str = "trading_bot", log_dir: str = "data/logs", console_output: bool = False):
         self.log_dir = log_dir
         os.makedirs(log_dir, exist_ok=True)
         

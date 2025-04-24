@@ -2,19 +2,16 @@ from typing import List, Dict, Optional, Union
 import logging
 from decimal import Decimal
 from .base_strategy import BaseStrategy
-from core.aggregator import Candle
 from dataclasses import dataclass, field
 from data.pump_data_feed import TradeEvent
 from datetime import datetime, timedelta
 import pandas as pd
-from risk.position import Position
+from core.position_tracker import Position
 import csv
 
 @dataclass
 class Signal:
     is_valid: bool
-    price: float
-    volume: float
     wallet_address: str = None
     transaction_hash: str = None
 
@@ -42,35 +39,30 @@ class CopyTradingStrategy(BaseStrategy):
             # Check if the trade is from a tracked wallet
             wallet_address = trade_event.user.lower()
             
-            if wallet_address not in self.tracked_wallets:
-                return Signal(is_valid=False, price=0, volume=0)
+            # Add debug logging to trace wallet address checking
+            is_tracked = wallet_address in [w.lower() for w in self.tracked_wallets]
             
-            # Get trade details
-            price = float(trade_event.sol_amount) / float(trade_event.token_amount)
-            volume = float(trade_event.sol_amount)
-            
-            # All conditions met - generate valid signal
+            if not is_tracked:
+                return Signal(is_valid=False)
+                
             return Signal(
                 is_valid=True,
-                price=price,
-                volume=volume,
                 wallet_address=wallet_address,
             )
             
         except Exception as e:
             self.logger.error(f"Strategy - Error in generate_signal: {str(e)}")
-            return Signal(is_valid=False, price=0, volume=0)
+            return Signal(is_valid=False)
 
-    def check_exit(self, token: str, trade_event: TradeEvent, position: Position, timestamp: datetime, current_price: float) -> Signal:
+    def check_exit(self, token: str,trade_wallet: str, wallet_followed: str, entry_price: float, current_price: float) -> Signal:
         """Exit strategy based on time, take profit, and stop loss"""
         try:  
             # # Calculate time elapsed since position entry
             # time_elapsed = timestamp - position.entry_time
             # minutes_elapsed = time_elapsed.total_seconds() / 60
-            price = current_price
-            volume = float(trade_event.sol_amount)
-            wallet_address = trade_event.user.lower()
-            pnl_pct = (price - position.entry_price) / position.entry_price
+            wallet_followed = wallet_followed.lower()
+            trade_wallet = trade_wallet.lower()
+            pnl_pct = (current_price - entry_price) / entry_price
             
             should_exit = False
 
@@ -82,16 +74,14 @@ class CopyTradingStrategy(BaseStrategy):
             if pnl_pct >= self.take_profit_pct:
                 should_exit = True
             
-            if wallet_address == position.wallet_copy_trading:
+            if trade_wallet == wallet_followed:
                 should_exit = True
                 
             
             return Signal(
                 is_valid=should_exit,
-                price=price,
-                volume=volume,
-                wallet_address=position.wallet_copy_trading,
+                wallet_address=wallet_followed,
             )
         except Exception as e:
             self.logger.error(f"Strategy - Error in check_exit: {str(e)}")
-            return Signal(is_valid=False, price=0, volume=None) 
+            return Signal(is_valid=False) 

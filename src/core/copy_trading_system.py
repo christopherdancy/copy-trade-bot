@@ -1,8 +1,8 @@
 from decimal import Decimal
 from datetime import datetime, timezone
 from typing import Dict, List
-from data.pump_data_feed_enhanced import PumpDataFeed
-from strategies.copy_trading_strategy import CopyTradingStrategy, Signal
+from data.pump_data_feed_enhanced import PumpDataFeed, TradeEvent
+from strategies.copy_trading_strategy import CopyTradingStrategy
 from risk.risk_manager import RiskManager
 from utils.logger import TradingLogger
 import pandas as pd
@@ -16,11 +16,10 @@ from pathlib import Path
 from execution.dry_run_executor import DryRunExecutor
 from solders.pubkey import Pubkey
 from data.backtest_data_feed import BacktestDataFeed
-from core.events import SignalEvent, EntryEvent, ExitEvent
 from risk.position import Position
 from asyncio import Lock
 from risk.monitoring import HeartbeatMonitor
-from risk.position_tracker import PositionTracker
+from core.position_tracker import PositionTracker
 from db.service import DatabaseService
 from dotenv import load_dotenv
 import json
@@ -40,17 +39,13 @@ class TradingSystem:
                  backtest_data_path: str = None,
                  strategy_params: Dict = None,
                  risk_params: Dict = None,
-                 timeframe_seconds: int = 60,
-                 run_name: str = None,
-                 logger: TradingLogger = None,
-                 position_tracker: PositionTracker = None):
+                 logger: TradingLogger = None):
 
         # Initialize Trading System
         self.logger = logger or TradingLogger("trading_system", console_output=False)
         self.is_running = False
         self.dry_run = dry_run
         self.backtest_mode = backtest_mode
-        self.timeframe_seconds = timeframe_seconds
         self.is_accepting_new_trades = True
         
         # Initialize data feed based on mode
@@ -67,6 +62,7 @@ class TradingSystem:
         # Load wallet for transactions
         if self.dry_run:
             self.executor = DryRunExecutor(initial_capital)
+            self.wallet = "7K3yK4K8cKGNZddgMMsMQuGtSt9Q3S4VTQimW3Rkf8QB"
         else:
             secret_key = bytes(base58.b58decode(os.getenv('PRIVATE_KEY')))
             self.wallet = Keypair.from_bytes(secret_key)
@@ -78,7 +74,10 @@ class TradingSystem:
         # Initialize strategy and risk management with provided or default parameters
         self.setup_strategy(strategy_params)
         self.setup_risk_management(initial_capital, risk_params)
-        self.position_tracker = position_tracker or PositionTracker()
+        self.position_tracker = PositionTracker(
+            csv_path="data/trades/live_run.csv",
+            logger=self.logger
+        )
 
         # Log system initialization
         self.logger.info(f"Trading System Initializing: Mode={'Backtest' if backtest_mode else 'Live'}, "
@@ -97,11 +96,20 @@ class TradingSystem:
         # Use provided params or defaults
         strategy_params = {**default_params, **(params or {})}
         
+        # Ensure tracked_wallets are all lowercase for case-insensitive comparison
+        tracked_wallets = [w.lower() for w in strategy_params.get('tracked_wallets', [])]
+        
         self.strategy = CopyTradingStrategy(
-            tracked_wallets=strategy_params.get('tracked_wallets'),
+            tracked_wallets=tracked_wallets,
             take_profit_pct=strategy_params.get('take_profit_pct'),
             logger=self.logger
         )
+        
+        # Log tracked wallets
+        if tracked_wallets:
+            self.logger.info(f"Tracking wallets: {tracked_wallets}")
+        else:
+            self.logger.warning("No tracked wallets configured!")
 
     def setup_risk_management(self, initial_capital: float, params: Dict = None):
         """Initialize risk management with provided or default parameters"""
@@ -132,7 +140,7 @@ class TradingSystem:
 
             async def on_trade(trade):
                 if self.is_running:
-                    await self.process_trade(trade)
+                    asyncio.create_task(self.process_trade(trade))
 
             self.data_feed.add_callback(on_trade)
             await self.data_feed.start()
@@ -149,7 +157,7 @@ class TradingSystem:
         # Stop accepting new trades
         if not self.dry_run:
             self.is_accepting_new_trades = False
-            open_positions = self.risk_manager.get_current_positions()
+            open_positions = await self.position_tracker.get_all_positions()
             if open_positions:
                 self.logger.warning(f"Waiting for {len(open_positions)} positions to close naturally")
                 # Keep checking positions until they're all closed
@@ -162,7 +170,7 @@ class TradingSystem:
                     
                     # Wait before checking again
                     await asyncio.sleep(60)  # Check every minute
-                    open_positions = self.risk_manager.get_current_positions()
+                    open_positions = await self.position_tracker.get_all_positions()
 
             self.logger.info("No open positions remaining - proceeding with full shutdown")
 
@@ -171,251 +179,210 @@ class TradingSystem:
         self.is_running = False
         await self.data_feed.stop()
         
-        self.position_tracker.analyze_performance()
-        
         # Log Shutdown
         self.logger.info("Trading system stopped successfully")
 
+    
     async def process_trade(self, trade):
         """Process a single trade"""
         if not self.is_running:
             return
 
         try:
-            # Add timestamp for start of processing
-            process_start_time = datetime.now(timezone.utc)
-            
             wallet_address = trade.user.lower()
-            our_wallet_address = None if self.dry_run else str(self.wallet.pubkey()).lower()
+            our_wallet_address = self.wallet.lower() if self.dry_run else str(self.wallet.pubkey()).lower()
+            
 
+            # Ensure we have a lock for this token
             if trade.mint not in self.position_locks:
                 self.position_locks[trade.mint] = Lock()
-
+            
+            # Use the lock for ALL processing of this token, including our own transactions
             async with self.position_locks[trade.mint]:
-                # Skip processing our own transactions
-                if not self.dry_run and wallet_address == our_wallet_address:
-                    self.logger.info(f"Skipping our own transaction: {trade.signature}")
+                # Track our own transactions directly through WebSocket feed
+                if wallet_address == our_wallet_address:
+                    await self._wallet_tracking(trade)
                     return
-                
-                # Track processing time before decision logic
-                pre_decision_time = datetime.now(timezone.utc)
-                pre_decision_ms = (pre_decision_time - process_start_time).total_seconds() * 1000
-                
+
                 # Exit Logic - check for exit conditions if we have a position in this token
                 # This applies to both buys and sells from other wallets, as price changes can trigger stop loss/take profit
-                if self.risk_manager.has_position(trade.mint):
-                    if not self.backtest_mode:
-                        self.logger.info(f"Checking exit conditions for {trade.mint}: "
-                            f"price={trade.price},"
-                            f"signature={trade.signature}, "
-                            f"sol_amount={trade.sol_amount}, "
-                            f"token_amount={trade.token_amount}, "
-                            f"blocktime={trade.blocktime}")
-                    else:
-                        self.logger.info(f"Checking exit conditions for {trade.mint}: "
-                            f"price={trade.price}, "
-                            f"signature={trade.signature}, "
-                            f"sol_amount={trade.sol_amount}, "
-                            f"token_amount={trade.token_amount}")
-                    await self._handle_exit_checks(trade)
+                position = await self.position_tracker.get_position(trade.mint)
+                if position:
+                    # Perform exit checks
+                    should_exit = await self._handle_exit_checks(trade, position)
+
+                    if should_exit:
+                        await self.execute_trade(trade, position.token_amount, False)
                     
-                    # Record exit handling time
-                    # exit_handling_time = datetime.now(timezone.utc)
-                    # exit_handling_ms = (exit_handling_time - pre_decision_time).total_seconds() * 1000
-                    # self.logger.info(f"Performance - Exit check processing: {exit_handling_ms:.2f}ms, Total: {(exit_handling_time - process_start_time).total_seconds() * 1000:.2f}ms")
                     return
                 
-                # Entry logic - only check for entries on buy transactions from tracked wallets
-                if trade.is_buy and wallet_address in self.strategy.tracked_wallets:
-                    self.logger.info(f"Checking entry conditions for {wallet_address}: "
-                        f"Mint={trade.mint}, "
-                        f"price={trade.price}, "
-                        f"signature={trade.signature}, "
-                        f"sol_amount={trade.sol_amount}, "
-                        f"token_amount={trade.token_amount}")
-                    await self._handle_entry_checks(trade)
+                # If no position and no pending entry, check if we should enter
+                elif trade.is_buy:
+                    # Check if this wallet is in our tracked list (case-insensitive)
+                    is_tracked = wallet_address in [w.lower() for w in self.strategy.tracked_wallets]
                     
-                    # Record entry handling time
-                    # entry_handling_time = datetime.now(timezone.utc)
-                    # entry_handling_ms = (entry_handling_time - pre_decision_time).total_seconds() * 1000
-                    # self.logger.info(f"Performance - Entry check processing: {entry_handling_ms:.2f}ms, Total: {(entry_handling_time - process_start_time).total_seconds() * 1000:.2f}ms")
+                    if is_tracked:
+                        self.logger.info(f"Processing entry for tracked wallet: {trade.user}")
+                        # Perform entry checks
+                        should_enter, position_size = await self._handle_entry_checks(trade)
+                        
+                        if should_enter:
+                            await self.execute_trade(trade, position_size, True)
+                    
                     return
-
-                # Record time for trades with no action
-                end_time = datetime.now(timezone.utc)
-                total_ms = (end_time - process_start_time).total_seconds() * 1000
-                # self.logger.info(f"Performance - No action taken: {total_ms:.2f}ms")
 
         except Exception as e:
             self.logger.error(f"Error processing trade in trading system: {str(e)}")
 
-    async def _handle_exit_checks(self, trade):
-        """Handle exit checks for existing position"""
+    async def _wallet_tracking(self, trade):
+        """Track our own transactions directly through WebSocket feed"""
         try:
-            position = self.risk_manager.get_position_info(trade.mint)
-            if not position or not position.is_active:
-                return
+            self.logger.info(f"Processing tx for {trade.mint}: "
+                f"price={trade.price}, "
+                f"signature={trade.signature}, "
+                f"sol_amount={trade.sol_amount}, "
+                f"token_amount={trade.token_amount},"
+                f"user={trade.user}")
                 
+            if trade.is_buy:
+                # Directly confirm entry with trade details from WebSocket
+                if not await self.position_tracker.has_pending_entry(trade.mint):
+                    self.logger.info(f"Skipping entry confirmation for {trade.mint} because it's not pending")
+                    return
+                await self.position_tracker.confirm_entry(trade)
+                await self.risk_manager.update_capital_after_entry(trade.total_sol_change)
+            else:
+                # Directly confirm exit with trade details from WebSocket
+                if not await self.position_tracker.has_pending_exit(trade.mint):
+                    self.logger.info(f"Skipping exit confirmation for {trade.mint} because it's not pending")
+                    return
+                await self.position_tracker.confirm_exit(trade)
+                await self.risk_manager.update_capital_after_exit(trade.total_sol_change)
+        except Exception as e:
+            self.logger.error(f"Error processing wallet tracking: {str(e)}")
+    
+    async def _handle_exit_checks(self, trade, position):
+        """Handle exit checks for existing position"""
+        try:    
+            self.logger.info(f"Checking exit conditions for {trade.mint}: "
+                f"price={trade.price}, "
+                f"signature={trade.signature}, "
+                f"sol_amount={trade.sol_amount}, "
+                f"token_amount={trade.token_amount}")
+
+            if await self.position_tracker.has_pending_exit(trade.mint):
+                self.logger.info(f"Skipping exit check for {trade.mint} because it's already pending")
+                return   
+
             # Skip trades that happened before our entry
-            # The blocktime is the timestamp.datetime of the transaction - we only get the 
             if not self.backtest_mode and position.entry_blocktime >= trade.blocktime:
                 self.logger.info(f"Skipping exit check for {trade.mint} because it's before or at the entry blocktime")
                 return
-                
-            current_price = float(str(trade.price))
-            # Check exit conditions 
+
             exit_signal = self.strategy.check_exit(
                 trade.mint,
-                trade,
-                position,
-                trade.timestamp,
-                current_price,
+                trade.user,
+                position.wallet_followed,
+                position.entry_price,
+                float(trade.price),
             )
-            stop_loss_hit = self.risk_manager.check_stop_loss(
-                trade.mint,
-                current_price
-            )
+            stop_loss_hit = self.risk_manager.check_stop_loss(position.entry_price, float(trade.price))
 
             # Execute exit if conditions met
             if (exit_signal and exit_signal.is_valid) or stop_loss_hit:
                 exit_reason = "Strategy Exit" if exit_signal.is_valid else "Stop Loss"
 
-                success, tx_details = await self.execute_trade(
-                    mint=trade.mint,
-                    price=exit_signal.price,
-                    is_buy=False,
-                    amount=position.token_amount,
-                    timestamp=trade.timestamp
-                )
-                
-                if success:
-                    # Update Position Data
-                    pnl = await self.risk_manager.exit_position(
-                        trade.mint,
-                        tx_details['execution_price'],
-                        tx_details['total_sol_change']
-                    )
-                    exit_type = "Strategy" if (exit_signal and exit_signal.is_valid) else "Stop Loss"
-                    self.logger.info(f"Exit Successful: Mint={trade.mint}, "
-                                   f"PnL={pnl}, exit reason={exit_reason} tx_details={tx_details}")
+                return True
 
         except Exception as e:
             self.logger.error(f"Exit check error: Mint={trade.mint}, Error={str(e)}")
-
+            
     async def _handle_entry_checks(self, trade):
         """Handle entry checks for new position"""
         if not self.is_accepting_new_trades:
             self.logger.info("System is in shutdown mode - no new positions allowed")
-            return
+            return False, 0.0
         
         try:
+            self.logger.info(f"Checking entry conditions for {trade.user}: "
+                f"Mint={trade.mint}, "
+                f"price={trade.price}, "
+                f"signature={trade.signature}, "
+                f"sol_amount={trade.sol_amount}, "
+                f"token_amount={trade.token_amount}")
+            
+            # Clean up any stale pending entries that might have timed out
+            # Using a shorter timeout of 15 seconds for cleanup during entry processing
+            await self.position_tracker.clear_stale_transactions(timeout_minutes=0.2)
+            
+            # Check if we already have a pending entry for this token
+            if await self.position_tracker.has_pending_entry(trade.mint):
+                self.logger.info(f"Already have a pending entry for {trade.mint}, skipping")
+                return False, 0.0
+
             # Generate entry signal directly from trade
             entry_signal = self.strategy.generate_signal(trade)
             
-            if entry_signal and entry_signal.is_valid:
-                # Risk Manager Entry Check
-                can_enter, position_size = await self.risk_manager.can_enter_position(trade.mint)
-                if can_enter and position_size > 0:
-                    
-                    # Execute Entry
-                    success, tx_details = await self.execute_trade(
-                        mint=trade.mint,
-                        price=entry_signal.price,
-                        is_buy=True,
-                        amount=position_size,
-                        timestamp=trade.timestamp,
-                        signal=entry_signal
-                    )
-
-                    if success:
-                        self.logger.info(f"Entry Successful: Mint={trade.mint}, "
-                                    f"Details={tx_details}")
-                        await self.risk_manager.add_position(
-                            trade.mint,
-                            tx_details['blocktime'],
-                            tx_details['sol_trade_amount'],
-                            tx_details['token_trade_amount'],
-                            tx_details['execution_price'],
-                            tx_details['total_fees'],
-                            tx_details['tx_sig'],
-                            tx_details['total_sol_change'],
-                            entry_signal.wallet_address
-                        )
-
-                    else:
-                        await self.risk_manager.remove_reserved_position(trade.mint)
+            if not (entry_signal and entry_signal.is_valid):
+                return False, 0.0
+            
+            # Get all positions and pending entries
+            current_positions = await self.position_tracker.get_all_positions()
+            pending_entries = await self.position_tracker.get_pending_entries()
+            
+            # Check total position count (active + pending)
+            total_positions = len(current_positions) + len(pending_entries)
+            
+            # Risk Manager Entry Check with pending allocations considered
+            can_enter, position_size = await self.risk_manager.can_enter_position(
+                trade.mint, 
+                total_positions
+            )
+            
+            if not (can_enter and position_size > 0):
+                return False, 0.0
+                
+            # Return success and position size
+            return True, position_size
+                
         except Exception as e:
             self.logger.error(f"Entry check error: Mint={trade.mint}, Error={str(e)}")
-            await self.risk_manager.remove_reserved_position(trade.mint)
-            raise
+            return False, 0.0
 
-    async def execute_trade(self, mint: str, price: float, is_buy: bool, amount: float, timestamp: datetime, signal: Signal = None) -> tuple[bool, Dict]:
+    async def execute_trade(self, trade: TradeEvent, amount: float = None, is_buy: bool = True) -> None:
         """
         Execute a trade (entry or exit)
         Args:
-            mint: Token mint address
-            price: Current price
-            is_buy: True for entry/buy, False for exit/sell
-            amount: Amount to trade (in SOL for buy, in tokens for sell)
+            trade: Trade event with details
+            position_size: Position size for entry (if applicable)
         Returns: 
-            tuple[bool, Dict]: (success, execution_details)
+            None - all tracking is handled through position_tracker
         """
-        trade_type = "buy" if is_buy else "sell"
         try:
-            # Start execution timing
-            exec_start_time = datetime.now(timezone.utc)
-            self.logger.info(f"Starting {trade_type} execution for {mint}")
-            
-            tx_details = None
             if self.dry_run:
-                # Simulate trade execution in dry run mode
-                self.logger.info(f"Executing DRY RUN {trade_type} transaction: {mint}, {amount} {'SOL' if is_buy else 'tokens'}")
-                success, tx_details = (
-                    self.executor.buy_token(
-                        mint=Pubkey.from_string(mint),
-                        amount_sol=amount,
-                        price=price
-                    ) if is_buy else
-                    self.executor.sell_token(
-                        mint=mint,
-                        token_amount=amount,
-                        price=price
-                    )
-                )
-            else:
-                tx_details = await (
-                    self.executor.buy_token(
-                        mint=Pubkey.from_string(mint),
-                        amount_sol=amount,
-                        price=price
-                    ) if is_buy else
-                    self.executor.sell_token(
-                        mint=Pubkey.from_string(mint),
-                        token_amount=amount,
-                    )
-                )
-            
-            # Record execution time
-            exec_end_time = datetime.now(timezone.utc)
-            exec_time_ms = (exec_end_time - exec_start_time).total_seconds() * 1000
-                
-            if tx_details:
-                if not is_buy:
-                    self.position_tracker.record_exit(mint, tx_details, timestamp)
+                if is_buy:
+                    await self.position_tracker.add_pending_entry(trade.mint, trade.user)
                 else:
-                    self.position_tracker.record_entry(mint, tx_details, timestamp, signal)
-                    
-                self.logger.info(f"Performance - {trade_type.capitalize()} transaction execution time: {exec_time_ms:.2f}ms")
-                return True, tx_details
+                    await self.position_tracker.add_pending_exit(trade.mint, trade.user)
+                self.logger.info(f"Dry run - Transaction for {trade.mint} confirmed")
+                return
+
+            if is_buy:
+                await self.executor.buy_token(
+                    mint=Pubkey.from_string(trade.mint),
+                    amount_sol=amount,
+                    price=trade.price
+                )
+                await self.position_tracker.add_pending_entry(trade.mint, trade.user)
+                self.logger.info(f"Buy transaction for {trade.mint} submitted")
             else:
-                self.logger.error(f"Transaction failed after {exec_time_ms:.2f}ms")
-                return False, {}
+                await self.executor.sell_token(
+                    mint=Pubkey.from_string(trade.mint),
+                    token_amount=amount
+                )
+                await self.position_tracker.add_pending_exit(trade.mint, trade.user)
+                self.logger.info(f"Sell transaction for {trade.mint} submitted")
                     
         except Exception as e:
-            # Record execution time even on error
-            exec_end_time = datetime.now(timezone.utc)
-            exec_time_ms = (exec_end_time - exec_start_time).total_seconds() * 1000
-            
-            self.logger.error(f"Error executing {trade_type} transaction for {mint}: {str(e)} (took {exec_time_ms:.2f}ms)")
-            return False, {}
+            self.logger.error(f"Error executing transaction for {trade.mint}: {str(e)}")
                 

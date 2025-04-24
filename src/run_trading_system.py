@@ -12,7 +12,6 @@ import logging
 from utils.logger import TradingLogger
 import sys
 import csv
-from risk.position_tracker import PositionTracker
 
 @dataclass
 class Config:
@@ -20,7 +19,6 @@ class Config:
     initial_capital: float
     strategy_params: Dict
     risk_params: Dict
-    timeframe_seconds: int
 
 class GracefulExit(SystemExit):
     pass
@@ -64,7 +62,7 @@ class InitTradingSystem:
     async def run_trading_system(self, config: Config) -> None:
         """Run trading system with graceful shutdown"""
         try:
-            tracked_wallets = load_tracked_wallets('data/tracked_wallets.csv')
+            tracked_wallets = load_tracked_wallets('data/wallets/copy_2025_04_16.csv')
             
             # Set up strategy parameters with tracked wallets
             strategy_params = {
@@ -81,20 +79,15 @@ class InitTradingSystem:
                 'max_hold_time_minutes': config.risk_params['max_hold_time_minutes'],
                 'max_daily_loss_pct': config.risk_params['max_daily_loss_pct']
             }
-
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            position_tracker = PositionTracker(csv_path=f"results/trades/live_{config.name}_{timestamp}.csv")  
             
             self.trading_bot = TradingSystem(
                 initial_capital=config.initial_capital,
-                dry_run=False,  # Set to False for live trading
-                backtest_mode=False,
-                backtest_data_path="backtest_data/2025_03_27.csv",
+                dry_run=True,  # Set to False for live trading
+                backtest_mode=True,
+                backtest_data_path="data/backtest/2025_04_16.csv",
                 strategy_params=strategy_params,
                 risk_params=risk_params,
-                run_name=config.name,
                 logger=self.logger,
-                position_tracker=position_tracker
             )
 
             await self.trading_bot.start()
@@ -164,10 +157,9 @@ async def main():
     
     config = Config(
         name=f"live_trading_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-        initial_capital=.50139,
+        initial_capital=100,
         strategy_params=baseline_strategy_params,
         risk_params=baseline_risk_params,
-        timeframe_seconds=60
     )
     
     init_system = InitTradingSystem(logger)

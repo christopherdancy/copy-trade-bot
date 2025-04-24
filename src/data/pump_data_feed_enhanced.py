@@ -23,30 +23,55 @@ class TradeEvent:
     token_amount: Decimal
     is_buy: bool
     user: str
-    timestamp: datetime
     virtual_sol_reserves: Decimal
     virtual_token_reserves: Decimal
     real_sol_reserves: Decimal
     real_token_reserves: Decimal
     signature: str
-    blocktime: Optional[int] = None
-
-    @property
-    def price(self) -> Decimal:
-        """Calculate price as SOL/token ratio"""
-        return self.sol_amount / self.token_amount if self.token_amount != 0 else Decimal(0)
-
-    @property
-    def virtual_price(self) -> Decimal:
-        """Calculate virtual price from reserves"""
-        return (self.virtual_sol_reserves / self.virtual_token_reserves 
-                if self.virtual_token_reserves != 0 else Decimal(0))
-
-    @property
-    def real_price(self) -> Decimal:
-        """Calculate real price from reserves"""
-        return (self.real_sol_reserves / self.real_token_reserves 
-                if self.real_token_reserves != 0 else Decimal(0))
+    blocktime: int
+    # Essential transaction details
+    price: Decimal = None
+    total_sol_change: float = 0.0  # Total SOL including fees
+    
+    def __init__(self, 
+                 mint: str, 
+                 sol_amount: Decimal, 
+                 token_amount: Decimal, 
+                 is_buy: bool, 
+                 user: str, 
+                 virtual_sol_reserves: Decimal,
+                 virtual_token_reserves: Decimal,
+                 real_sol_reserves: Decimal,
+                 real_token_reserves: Decimal,
+                 signature: str,
+                 blocktime: int,
+                 total_sol_change: float):
+        self.mint = mint
+        self.sol_amount = sol_amount
+        self.token_amount = token_amount
+        self.is_buy = is_buy
+        self.user = user
+        self.virtual_sol_reserves = virtual_sol_reserves
+        self.virtual_token_reserves = virtual_token_reserves
+        self.real_sol_reserves = real_sol_reserves
+        self.real_token_reserves = real_token_reserves
+        self.signature = signature
+        self.blocktime = blocktime
+        
+        self.price = sol_amount / token_amount if token_amount > 0 else Decimal(0)
+        self.total_sol_change = total_sol_change
+        
+    def as_dict(self) -> dict:
+        """Convert to dictionary format compatible with tx_details"""
+        return {
+            "tx_type": "buy" if self.is_buy else "sell",
+            "execution_price": float(self.price),
+            "sol_trade_amount": float(self.sol_amount),
+            "token_trade_amount": float(self.token_amount),
+            "total_sol_change": self.total_sol_change,
+            "tx_sig": self.signature,
+            "blocktime": self.blocktime
+        }
 
 class PumpDataFeed:
     def __init__(self, logger: Logger, debug: bool = True):
@@ -120,19 +145,8 @@ class PumpDataFeed:
                         self.message_health['last_message_time'] = current_time
                         self.message_health['messages_received'] += 1
                         msg_counter += 1
-                        
-                        # Log summary every 30 seconds
-                        # seconds_since_last_log = (current_time - last_log_time).total_seconds()
-                        # if seconds_since_last_log >= 30:
-                        #     self.logger.info(f"Received {msg_counter} messages in the last {seconds_since_last_log:.1f} seconds")
-                        #     msg_counter = 0
-                        #     last_log_time = current_time
-                        
-                        # Only log full message for debugging if needed
-                        # if self.message_health['messages_received'] <= 2:
-                        #     self.logger.info(f"Raw message ({len(msg)} bytes): {msg[:1000]}...")
                             
-                        await self.process_message(msg)
+                        asyncio.create_task(self.process_message(msg))
                 except websockets.exceptions.ConnectionClosed as e:
                     self.connection_status['last_disconnect_time'] = datetime.now()
                     self.connection_status['disconnect_code'] = e.code
@@ -351,24 +365,57 @@ class PumpDataFeed:
                         except (ValueError, OverflowError, OSError) as e:
                             self.logger.debug(f"Invalid timestamp conversion: {timestamp}, error: {str(e)}")
                             return
-                            
-                        # Calculate network latency
-                        network_latency_ms = (receipt_time - tx_timestamp).total_seconds() * 1000
                         
-                        # Create TradeEvent
+                        # Look for the user account first, then fall back to sol_amount
+                        if "accountKeys" in tx_data["message"] and "preBalances" in tx_meta and "postBalances" in tx_meta:
+                            account_keys = tx_data["message"]["accountKeys"]
+                            user_account_idx = None
+                            user_change = None
+                            
+                            # First, try to find the user account specifically
+                            for i, account in enumerate(account_keys):
+                                account_key = account.get("pubkey", account) if isinstance(account, dict) else account
+                                if str(account_key) == str(user):
+                                    user_account_idx = i
+                                    pre_balance = tx_meta["preBalances"][i]
+                                    post_balance = tx_meta["postBalances"][i]
+                                    user_change = (post_balance - pre_balance) / 1e9
+                                    break
+                            
+                            # If we found the user account with a significant change, use that
+                            if user_account_idx is not None and abs(user_change) > 0.0001:
+                                if is_buy and user_change < 0:
+                                    # For buys, user change will be negative (SOL spent)
+                                    total_sol_change = abs(user_change)
+                                elif not is_buy and user_change > 0:
+                                    # For sells, user change will be positive (SOL received)
+                                    total_sol_change = user_change
+                                else:
+                                    # User change exists but doesn't match expected direction
+                                    # Fall back to sol_amount
+                                    total_sol_change = float(sol_decimal)
+                            else:
+                                # User account not found or change too small
+                                # Fall back to sol_amount
+                                total_sol_change = float(sol_decimal)
+                        else:
+                            # Fall back to sol_amount
+                            total_sol_change = float(sol_decimal)
+                        
+                        # Create TradeEvent with accurate total_sol_change
                         trade_event = TradeEvent(
                             mint=mint,
                             sol_amount=sol_decimal,
                             token_amount=token_decimal,
                             is_buy=is_buy,
                             user=user,
-                            timestamp=tx_timestamp,
                             virtual_sol_reserves=Decimal(v_sol) / Decimal(1_000_000_000),
                             virtual_token_reserves=Decimal(v_token) / Decimal(1_000_000),
                             real_sol_reserves=Decimal(r_sol) / Decimal(1_000_000_000),
                             real_token_reserves=Decimal(r_token) / Decimal(1_000_000),
                             signature=signature,
-                            blocktime=timestamp
+                            blocktime=timestamp,
+                            total_sol_change=total_sol_change
                         )
                         
                         # Calculate processing time
@@ -377,16 +424,12 @@ class PumpDataFeed:
                         
                         # Call callbacks
                         for callback in self.callbacks:
-                            await callback(trade_event)
-                            
+                            asyncio.create_task(callback(trade_event))
+                        
                         # Calculate total time
                         total_time = datetime.now()
                         total_latency_ms = (total_time - receipt_time).total_seconds() * 1000
-                        
-                        # Log timing metrics
-                        # timing_info = f"Latency metrics - Parsing: {parsing_latency_ms:.2f}ms, Total: {total_latency_ms:.2f}ms, Network: {network_latency_ms:.2f}ms, Signature: {signature[:8]}..."
-                        # self.logger.info(timing_info)
-                    
+
                     except Exception as e:
                         self.logger.error(f"Error parsing program data: {str(e)}")
 
