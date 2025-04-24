@@ -133,7 +133,7 @@ class PumpDataFeed:
                 self.logger.info(f"Enhanced transactionSubscribe sent successfully for pump program: {self.program_id}")
                 
                 # Setup ping to keep connection alive
-                # ping_task = asyncio.create_task(self._keep_alive())
+                ping_task = asyncio.create_task(self._keep_alive())
                 
                 msg_counter = 0
                 last_log_time = datetime.now()
@@ -172,10 +172,9 @@ class PumpDataFeed:
         """Send pings periodically to keep the connection alive"""
         while True:
             try:
-                await asyncio.sleep(30)  # Send ping every 30 seconds
+                await asyncio.sleep(60)  # Send ping every 30 seconds
                 ping_msg = {"jsonrpc": "2.0", "id": 999, "method": "ping"}
                 await self.ws.send(json.dumps(ping_msg))
-                self.logger.debug("Ping sent to server")
             except asyncio.CancelledError:
                 # Task was cancelled, exit gracefully
                 return

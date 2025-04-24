@@ -189,6 +189,11 @@ class TradingSystem:
             return
 
         try:
+            # Timestamp when we received the trade for processing
+            trade_received_time = datetime.now(timezone.utc)
+            trade_time = datetime.fromtimestamp(trade.blocktime, timezone.utc)
+            network_latency_ms = (trade_received_time - trade_time).total_seconds() * 1000
+            
             wallet_address = trade.user.lower()
             our_wallet_address = self.wallet.lower() if self.dry_run else str(self.wallet.pubkey()).lower()
             
@@ -211,7 +216,15 @@ class TradingSystem:
                     should_exit = await self._handle_exit_checks(trade, position)
 
                     if should_exit:
+                        # Record time before executing trade
+                        execution_start_time = datetime.now(timezone.utc)
+                        
                         await self.execute_trade(trade, position.token_amount, False)
+                        
+                        # Calculate execution time
+                        execution_time_ms = (datetime.now(timezone.utc) - execution_start_time).total_seconds() * 1000
+                        
+                        self.logger.info(f"EXIT LATENCY - Network: {network_latency_ms:.2f}ms, Execution: {execution_time_ms:.2f}ms")
                     
                     return
                 
@@ -226,7 +239,15 @@ class TradingSystem:
                         should_enter, position_size = await self._handle_entry_checks(trade)
                         
                         if should_enter:
+                            # Record time before executing trade
+                            execution_start_time = datetime.now(timezone.utc)
+                            
                             await self.execute_trade(trade, position_size, True)
+                            
+                            # Calculate execution time
+                            execution_time_ms = (datetime.now(timezone.utc) - execution_start_time).total_seconds() * 1000
+                            
+                            self.logger.info(f"ENTRY LATENCY - Network: {network_latency_ms:.2f}ms, Execution: {execution_time_ms:.2f}ms")
                     
                     return
 
