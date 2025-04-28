@@ -8,7 +8,6 @@ from utils.logger import TradingLogger
 import pandas as pd
 import asyncio
 from dataclasses import dataclass
-from utils.config import RiskParameters
 from execution.live_run_executor import LiveRunExecutor
 from solders.keypair import Keypair
 import os
@@ -104,12 +103,6 @@ class TradingSystem:
             take_profit_pct=strategy_params.get('take_profit_pct'),
             logger=self.logger
         )
-        
-        # Log tracked wallets
-        if tracked_wallets:
-            self.logger.info(f"Tracking wallets: {tracked_wallets}")
-        else:
-            self.logger.warning("No tracked wallets configured!")
 
     def setup_risk_management(self, initial_capital: float, params: Dict = None):
         """Initialize risk management with provided or default parameters"""
@@ -117,8 +110,6 @@ class TradingSystem:
             'max_position_size': 0.1,
             'stop_loss_pct': .01,
             'max_positions': 10000,
-            'max_hold_time_minutes': 10000,
-            'max_daily_loss_pct': 1
         }
         
         # Use provided params or defaults
@@ -126,7 +117,7 @@ class TradingSystem:
         
         self.risk_manager = RiskManager(
             initial_capital=initial_capital,
-            risk_params=RiskParameters(**risk_params),
+            risk_params=risk_params,
             logger=self.logger
         )
 

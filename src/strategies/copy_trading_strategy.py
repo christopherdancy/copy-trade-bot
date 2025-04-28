@@ -18,13 +18,9 @@ class Signal:
 class CopyTradingStrategy(BaseStrategy):
     def __init__(self, 
                  tracked_wallets: List[str],
-                 min_trade_amount: float = 0.1,  # Minimum SOL amount to consider
-                 max_time_in_trade: int = 30,    # Minutes to stay in trade
                  take_profit_pct: float = 0.15,  # 15% take profit
                  logger: logging.Logger = None):
         super().__init__()
-        # self.min_trade_amount = min_trade_amount
-        # self.max_time_in_trade = max_time_in_trade
         self.take_profit_pct = take_profit_pct
         self.logger = logger
         
@@ -54,30 +50,24 @@ class CopyTradingStrategy(BaseStrategy):
             self.logger.error(f"Strategy - Error in generate_signal: {str(e)}")
             return Signal(is_valid=False)
 
-    def check_exit(self, token: str,trade_wallet: str, wallet_followed: str, entry_price: float, current_price: float) -> Signal:
+    def check_exit(self, token: str, trade_wallet: str, wallet_followed: str, entry_price: float, current_price: float) -> Signal:
         """Exit strategy based on time, take profit, and stop loss"""
         try:  
-            # # Calculate time elapsed since position entry
-            # time_elapsed = timestamp - position.entry_time
-            # minutes_elapsed = time_elapsed.total_seconds() / 60
-            wallet_followed = wallet_followed.lower()
-            trade_wallet = trade_wallet.lower()
-            pnl_pct = (current_price - entry_price) / entry_price
-            
             should_exit = False
-
-            # # Exit if we've been in the trade for too long
-            # if minutes_elapsed >= self.max_time_in_trade:
-            #     should_exit = True
-
+            
             # Take profit
+            pnl_pct = (current_price - entry_price) / entry_price
+
             if pnl_pct >= self.take_profit_pct:
                 should_exit = True
+            
+            # Followed wallet
+            wallet_followed = wallet_followed.lower()
+            trade_wallet = trade_wallet.lower()
             
             if trade_wallet == wallet_followed:
                 should_exit = True
                 
-            
             return Signal(
                 is_valid=should_exit,
                 wallet_address=wallet_followed,

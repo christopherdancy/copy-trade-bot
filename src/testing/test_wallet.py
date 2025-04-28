@@ -1,4 +1,4 @@
-from execution.wallet import WalletManager
+from .wallet import WalletManager
 import asyncio
 from solana.rpc.async_api import AsyncClient
 

@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Tuple, Optional, List
 from core.position_tracker import Position
-from utils.config import RiskParameters
 from utils.logger import TradingLogger
 import pandas as pd
 from asyncio import Lock
@@ -9,12 +8,12 @@ from asyncio import Lock
 class RiskManager:
     def __init__(self,
                  initial_capital: float,
-                 risk_params: Optional[RiskParameters] = None,
+                 risk_params: Dict,
                  logger: Optional[TradingLogger] = None):
         
         self.initial_capital = initial_capital
         self.current_capital = initial_capital
-        self.risk_params = risk_params or RiskParameters()
+        self.risk_params = risk_params
         self.logger = logger or TradingLogger("risk_manager")
         
         self.daily_pnl: float = 0
@@ -35,11 +34,6 @@ class RiskManager:
         if position_size > self.current_capital:
             self.logger.debug(f"Insufficient capital: {self.current_capital:.4f} SOL")
             return False, 0.0
-        
-        # # Check daily loss limit
-        # if self.daily_pnl < -(self.initial_capital * self.risk_params.max_daily_loss_pct):
-        #     self.logger.debug(f"Daily loss limit reached: {self.daily_pnl:.4f} SOL")
-        #     return False, 0.0
         
         return True, position_size
     

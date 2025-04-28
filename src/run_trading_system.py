@@ -4,7 +4,6 @@ from datetime import datetime, timezone, timedelta
 from typing import Dict, List
 from dataclasses import dataclass
 from core.trading_system import TradingSystem
-from utils.config import RiskParameters
 import pandas as pd
 from pathlib import Path
 import statistics 
@@ -15,7 +14,6 @@ import csv
 
 @dataclass
 class Config:
-    name: str
     initial_capital: float
     strategy_params: Dict
     risk_params: Dict
@@ -67,8 +65,6 @@ class InitTradingSystem:
             # Set up strategy parameters with tracked wallets
             strategy_params = {
                 'tracked_wallets': tracked_wallets,
-                'min_trade_amount': config.strategy_params.get('min_trade_amount', 0.1),
-                'max_time_in_trade': config.strategy_params.get('max_time_in_trade', 30),
                 'take_profit_pct': config.strategy_params.get('take_profit_pct', 0.15),
             }
             
@@ -76,14 +72,12 @@ class InitTradingSystem:
                 'max_position_size': config.risk_params['max_position_size'],
                 'stop_loss_pct': config.risk_params['stop_loss_pct'],
                 'max_positions': config.risk_params['max_positions'],
-                'max_hold_time_minutes': config.risk_params['max_hold_time_minutes'],
-                'max_daily_loss_pct': config.risk_params['max_daily_loss_pct']
             }
             
             self.trading_bot = TradingSystem(
                 initial_capital=config.initial_capital,
-                dry_run=True,  # Set to False for live trading
-                backtest_mode=True,
+                dry_run=False,  # Set to False for live trading
+                backtest_mode=False,
                 backtest_data_path="data/backtest/2025_04_16.csv",
                 strategy_params=strategy_params,
                 risk_params=risk_params,
@@ -143,20 +137,15 @@ async def main():
     baseline_risk_params = {
         'max_position_size': 0.05,
         'max_positions': 5,
-        'max_hold_time_minutes': 5,
-        'max_daily_loss_pct': 0.5,
-        'stop_loss_pct': 0.05
+        'stop_loss_pct': 0.04
     }
 
     # Copy trading strategy parameters
     baseline_strategy_params = {
-        'min_trade_amount': 0.1,
-        'max_time_in_trade': 30,
-        'take_profit_pct': 0.09,
+        'take_profit_pct': 0.08,
     }
     
     config = Config(
-        name=f"live_trading_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
         initial_capital=100,
         strategy_params=baseline_strategy_params,
         risk_params=baseline_risk_params,
