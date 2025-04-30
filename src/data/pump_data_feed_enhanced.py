@@ -14,6 +14,7 @@ import websockets.exceptions
 from logging import Logger
 
 # Load environment variables
+# TODO: Add pump.fun AMM data feed example... 3Jaz4pKGyUo6rSLXWgP4YXXerho4LHKNs43n1uPAYtkwQpYTdX62aL5SMoRNj7ir1Ar1Rh55cCaCM7Ff1TRA2GD1
 load_dotenv()
 
 @dataclass
@@ -100,7 +101,14 @@ class PumpDataFeed:
             try:
                 connect_start = datetime.now()
                 self.logger.info(f"Attempting to connect to Laserstream WebSocket at {self.ws_url}")
-                self.ws = await websockets.connect(self.ws_url)
+                
+                # Configure ping interval and timeout to more robust values
+                self.ws = await websockets.connect(
+                    self.ws_url,
+                    ping_interval=30,    # Send a ping every 30 seconds
+                    ping_timeout=10,     # Wait 10 seconds for pong response
+                    close_timeout=5      # Wait 5 seconds for close frame
+                )
                 
                 # Track successful connection
                 self.connection_status['reconnect_success'] = True
@@ -132,9 +140,6 @@ class PumpDataFeed:
                 await self.ws.send(json.dumps(subscribe_message))
                 self.logger.info(f"Enhanced transactionSubscribe sent successfully for pump program: {self.program_id}")
                 
-                # Setup ping to keep connection alive
-                ping_task = asyncio.create_task(self._keep_alive())
-                
                 msg_counter = 0
                 last_log_time = datetime.now()
                 
@@ -157,9 +162,6 @@ class PumpDataFeed:
                         f"Last message: {self.message_health['last_message_time']}"
                     )
                     
-                    # Cancel the ping task
-                    ping_task.cancel()
-                    
                     # Wait a bit before reconnecting
                     await asyncio.sleep(5)
                         
@@ -168,19 +170,6 @@ class PumpDataFeed:
                 await asyncio.sleep(5)
                 continue
                 
-    async def _keep_alive(self):
-        """Send pings periodically to keep the connection alive"""
-        while True:
-            try:
-                await asyncio.sleep(60)  # Send ping every 30 seconds
-                ping_msg = {"jsonrpc": "2.0", "id": 999, "method": "ping"}
-                await self.ws.send(json.dumps(ping_msg))
-            except asyncio.CancelledError:
-                # Task was cancelled, exit gracefully
-                return
-            except Exception as e:
-                self.logger.error(f"Ping error: {str(e)}")
-                return  # Stop the ping task if there's an error
 
     def add_callback(self, callback: Callable):
         """Add a callback to receive market data"""

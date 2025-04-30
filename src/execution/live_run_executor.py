@@ -53,8 +53,6 @@ class LiveRunExecutor:
     ):
         """Execute a buy transaction with derived accounts - pure fire and forget approach"""
         try:
-            self.logger.info(f"Building buy transaction")
-            
             # Get PDAs and associated accounts
             bonding_curve_pda = self.bonding_curve_executor.get_bonding_curve_pda(mint, PUMP_PROGRAM)
             associated_bonding_curve = self.bonding_curve_executor.get_associated_bonding_curve(
@@ -119,8 +117,6 @@ class LiveRunExecutor:
     ):
         """Execute a sell transaction - pure fire and forget approach"""
         try:
-            self.logger.info(f"Building sell transaction")
-            
             # Get PDAs and associated accounts
             bonding_curve_pda = self.bonding_curve_executor.get_bonding_curve_pda(mint, PUMP_PROGRAM)
             associated_bonding_curve = self.bonding_curve_executor.get_associated_bonding_curve(
@@ -162,8 +158,11 @@ class LiveRunExecutor:
             # Return immediately - we'll get all updates through WebSocket
             return True
             
+        except ValueError as ve:
+            self.logger.error(f"Error building sell transaction: {str(ve)}")
+            return False
         except Exception as e:
-            self.logger.error(f"Error in sell_token: {str(e)}")
+            self.logger.error(f"Error in sell transaction creation: {str(e)}")
             return False
 
     async def _submit_transaction(self, transaction, mint, tx_type):

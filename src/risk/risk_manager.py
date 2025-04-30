@@ -23,12 +23,12 @@ class RiskManager:
     async def can_enter_position(self, token: str, current_pending_positions: int) -> Tuple[bool, float]:
         """Check if we can enter a new position based on current positions and risk parameters"""
         # Check max positions limit
-        if current_pending_positions >= self.risk_params.max_positions:
+        if current_pending_positions >= self.risk_params['max_positions']:
             self.logger.debug(f"Max positions reached: {current_pending_positions}")
             return False, 0.0
         
         # Use fixed position size
-        position_size = self.risk_params.max_position_size
+        position_size = self.risk_params['max_position_size']
 
         # Check if we have enough capital
         if position_size > self.current_capital:
@@ -42,7 +42,7 @@ class RiskManager:
         # Calculate percentage drop from entry
         pnl_pct = (current_price - entry_price) / entry_price
 
-        if pnl_pct <= -self.risk_params.stop_loss_pct:
+        if pnl_pct <= -self.risk_params['stop_loss_pct']:
             return True
         return False
 
@@ -55,6 +55,12 @@ class RiskManager:
         """Update capital after a position exit"""
         async with self.position_lock:
             self.current_capital += sol_received
+    
+    def update_capital(self, new_capital: float):
+        """Update the current capital amount directly"""
+        self.current_capital = new_capital
+        self.initial_capital = new_capital  # Update initial capital reference as well
+        self.logger.info(f"Capital updated to {new_capital:.4f} SOL")
     
     def reset_daily_pnl(self):
         """Reset daily PnL counter"""
