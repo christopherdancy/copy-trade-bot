@@ -32,7 +32,6 @@ load_dotenv()
 
 class TradingSystem:
     def __init__(self, 
-                 initial_capital: float = 10.0, 
                  dry_run: bool = True,
                  backtest_mode: bool = True,
                  backtest_data_path: str = None,
@@ -58,9 +57,12 @@ class TradingSystem:
         # Initialize position locks
         self.position_locks = {} 
 
+        # Set default initial capital
+        self.initial_capital = 100.0
+        
         # Load wallet for transactions
         if self.dry_run:
-            self.executor = DryRunExecutor(initial_capital)
+            self.executor = DryRunExecutor(100)
             self.wallet = "7K3yK4K8cKGNZddgMMsMQuGtSt9Q3S4VTQimW3Rkf8QB"
         else:
             secret_key = bytes(base58.b58decode(os.getenv('PRIVATE_KEY')))
@@ -72,7 +74,7 @@ class TradingSystem:
         
         # Initialize strategy and risk management with provided or default parameters
         self.setup_strategy(strategy_params)
-        self.setup_risk_management(initial_capital, risk_params)
+        self.setup_risk_management(self.initial_capital, risk_params)
         self.position_tracker = PositionTracker(
             csv_path="data/trades/live_run.csv",
             logger=self.logger
@@ -80,11 +82,19 @@ class TradingSystem:
 
         # Log system initialization
         self.logger.info(f"Trading System Initializing: Mode={'Backtest' if backtest_mode else 'Live'}, "
-                        f"Dry Run={dry_run}, Initial Capital={initial_capital}")
+                        f"Dry Run={dry_run}, Initial Capital={self.initial_capital}")
         self.logger.info(f"Strategy Parameters: {strategy_params}")
         self.logger.info(f"Risk Parameters: {risk_params}")
-        self.logger.info(f"Backtest Mode: {self.backtest_mode} Dry Run: {self.dry_run}")
 
+    async def update_initial_capital(self):
+        """Update initial capital with actual wallet balance"""
+        if not self.dry_run:
+            self.initial_capital = await self.executor.get_sol_balance()
+            # Update risk manager with new capital amount
+            self.risk_manager.update_capital(self.initial_capital)
+            self.logger.info(f"Updated initial capital to {self.initial_capital} SOL")
+        return self.initial_capital
+    
     def setup_strategy(self, params: Dict = None):
         """Initialize strategy with provided or default parameters"""
         default_params = {
@@ -225,7 +235,6 @@ class TradingSystem:
                     is_tracked = wallet_address in [w.lower() for w in self.strategy.tracked_wallets]
                     
                     if is_tracked:
-                        self.logger.info(f"Processing entry for tracked wallet: {trade.user}")
                         # Perform entry checks
                         should_enter, position_size = await self._handle_entry_checks(trade)
                         
@@ -324,7 +333,8 @@ class TradingSystem:
             
             # Clean up any stale pending entries that might have timed out
             # Using a shorter timeout of 15 seconds for cleanup during entry processing
-            await self.position_tracker.clear_stale_transactions(timeout_minutes=0.2)
+            # Todo - recheck this
+            await self.position_tracker.clear_stale_transactions(timeout_minutes=0.5)
             
             # Check if we already have a pending entry for this token
             if await self.position_tracker.has_pending_entry(trade.mint):
@@ -379,20 +389,28 @@ class TradingSystem:
                 return
 
             if is_buy:
-                await self.executor.buy_token(
+                # Convert Decimal to float for price
+                success = await self.executor.buy_token(
                     mint=Pubkey.from_string(trade.mint),
-                    amount_sol=amount,
-                    price=trade.price
+                    amount_sol=float(amount),
+                    price=float(trade.price)
                 )
-                await self.position_tracker.add_pending_entry(trade.mint, trade.user)
-                self.logger.info(f"Buy transaction for {trade.mint} submitted")
+                
+                if success:
+                    await self.position_tracker.add_pending_entry(trade.mint, trade.user)
+                else:
+                    self.logger.error(f"Buy transaction for {trade.mint} failed, not adding pending entry")
             else:
-                await self.executor.sell_token(
+                # Convert Decimal to float for price and amount
+                success = await self.executor.sell_token(
                     mint=Pubkey.from_string(trade.mint),
-                    token_amount=amount
+                    token_amount=float(amount)
                 )
-                await self.position_tracker.add_pending_exit(trade.mint, trade.user)
-                self.logger.info(f"Sell transaction for {trade.mint} submitted")
+                
+                if success:
+                    await self.position_tracker.add_pending_exit(trade.mint, trade.user)
+                else:
+                    self.logger.error(f"Sell transaction for {trade.mint} failed, not adding pending exit")
                     
         except Exception as e:
             self.logger.error(f"Error executing transaction for {trade.mint}: {str(e)}")

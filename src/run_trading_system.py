@@ -14,7 +14,8 @@ import csv
 
 @dataclass
 class Config:
-    initial_capital: float
+    dry_run: bool
+    backtest_mode: bool
     strategy_params: Dict
     risk_params: Dict
 
@@ -60,12 +61,12 @@ class InitTradingSystem:
     async def run_trading_system(self, config: Config) -> None:
         """Run trading system with graceful shutdown"""
         try:
-            tracked_wallets = load_tracked_wallets('data/wallets/copy_2025_04_16.csv')
+            tracked_wallets = load_tracked_wallets('data/wallets/copy_2025_04_29.csv')
             
             # Set up strategy parameters with tracked wallets
             strategy_params = {
                 'tracked_wallets': tracked_wallets,
-                'take_profit_pct': config.strategy_params.get('take_profit_pct', 0.15),
+                'take_profit_pct': config.strategy_params['take_profit_pct'],
             }
             
             risk_params = {
@@ -74,15 +75,19 @@ class InitTradingSystem:
                 'max_positions': config.risk_params['max_positions'],
             }
             
+            # Create trading bot with normal initialization
             self.trading_bot = TradingSystem(
-                initial_capital=config.initial_capital,
-                dry_run=False,  # Set to False for live trading
-                backtest_mode=False,
-                backtest_data_path="data/backtest/2025_04_16.csv",
+                dry_run=config.dry_run,  # Set to False for live trading
+                backtest_mode=config.backtest_mode,
+                backtest_data_path="data/backtest/2025_04_29.csv",
                 strategy_params=strategy_params,
                 risk_params=risk_params,
                 logger=self.logger,
             )
+            
+            # Update initial capital from wallet if in live mode
+            if not config.dry_run and not config.backtest_mode:
+                await self.trading_bot.update_initial_capital()
 
             await self.trading_bot.start()
             self.logger.info("Trading system started successfully")
@@ -146,7 +151,8 @@ async def main():
     }
     
     config = Config(
-        initial_capital=100,
+        dry_run = False,
+        backtest_mode = False,
         strategy_params=baseline_strategy_params,
         risk_params=baseline_risk_params,
     )
